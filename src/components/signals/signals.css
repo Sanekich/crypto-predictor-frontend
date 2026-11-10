@@ -1,0 +1,263 @@
+.section-link {
+  padding-bottom: 3px;
+  color: #12a77d;
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.section-link:hover {
+  text-decoration: underline;
+}
+
+.forecast-icon.down {
+  background: #fdecee;
+  color: #d0505b;
+}
+
+.status-badge {
+  margin-left: auto;
+  padding: 4px 7px;
+  border-radius: 5px;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.status-badge.approved {
+  background: #e6f7f1;
+  color: #0e8f69;
+}
+
+.status-badge.shadow {
+  background: #fff4e0;
+  color: #a5690b;
+}
+
+/* Overview: probability split bar */
+.direction-split {
+  display: flex;
+  height: 8px;
+  margin-top: 16px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.split-down {
+  background: #f2b8be;
+}
+
+.split-up {
+  background: #9fe0c8;
+}
+
+.short-card .range-labels {
+  margin-bottom: 10px;
+}
+
+/* Signals page */
+.signal-card.active.up {
+  border-color: #9fe0c8;
+  box-shadow: 0 5px 20px rgba(19, 174, 128, .12);
+}
+
+.signal-card.active.down {
+  border-color: #f2b8be;
+  box-shadow: 0 5px 20px rgba(208, 80, 91, .12);
+}
+
+.signal-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 16px 0 14px;
+}
+
+.signal-main > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.signal-arrow {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  place-items: center;
+  border-radius: 12px;
+  font-size: 26px;
+  font-weight: 700;
+}
+
+.signal-arrow.up {
+  background: #e6f7f1;
+  color: #0e8f69;
+}
+
+.signal-arrow.down {
+  background: #fdecee;
+  color: #d0505b;
+}
+
+.signal-direction {
+  color: #18251f;
+  font-size: 22px;
+}
+
+.signal-confidence {
+  color: #34443c;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.signal-target {
+  color: #87938d;
+  font-size: 10px;
+}
+
+.signal-main.idle {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  background: #f6f8f7;
+}
+
+.signal-main.idle strong {
+  color: #34443c;
+  font-size: 14px;
+}
+
+.signal-main.idle span {
+  color: #7f8c85;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.status-note {
+  margin-top: 12px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.status-note.approved {
+  background: #f1faf6;
+  color: #0e8f69;
+}
+
+.status-note.shadow {
+  background: #fffaf0;
+  color: #8a5a0a;
+}
+
+.status-note ul {
+  margin: 4px 0 0;
+  padding-left: 16px;
+}
+
+.empty-history {
+  padding: 18px 19px;
+  color: #6f7c76;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.history-wrap {
+  overflow-x: auto;
+  border: 1px solid #e8eeeb;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.history-table th,
+.history-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid #eff2f0;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.history-table th {
+  color: #89968f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .8px;
+  text-transform: uppercase;
+}
+
+.history-table tr:last-child td {
+  border-bottom: none;
+}
+
+.history-table td.up {
+  color: #0e8f69;
+  font-weight: 600;
+}
+
+.history-table td.down {
+  color: #d0505b;
+  font-weight: 600;
+}
+
+.history-table .hit {
+  color: #0e8f69;
+}
+
+.history-table .miss {
+  color: #d0505b;
+}
+
+.history-table .pending {
+  color: #9aa59f;
+}
+
+.history-table .tag {
+  margin-left: 6px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #fff4e0;
+  color: #a5690b;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+/* Top navigation */
+.topnav {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 8px;
+  background: #f0f4f2;
+}
+
+.topnav a {
+  padding: 6px 11px;
+  border-radius: 6px;
+  color: #6f7c76;
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.topnav a.active {
+  background: #fff;
+  color: #12a77d;
+  box-shadow: 0 1px 4px rgba(29, 60, 45, .1);
+}
+
+@media (max-width: 640px) {
+  .topnav a {
+    padding: 6px 8px;
+    font-size: 11px;
+  }
+}

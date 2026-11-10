@@ -1,0 +1,13 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Dashboard -> New -> Blueprint -> select this repository.
+services:
+  - type: web
+    runtime: static
+    name: crypto-predictor-frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    autoDeploy: true
+    envVars:
+      # Address of the deployed backend (Render shows it on the backend service page)
+      - key: VITE_API_URL
+        value: https://crypto-predictor-backend.onrender.com

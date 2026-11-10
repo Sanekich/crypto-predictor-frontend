@@ -1,4 +1,4 @@
-import type { ApiErrorCode, Horizon, Prediction } from './types';
+import type { ApiErrorCode, Horizon, Prediction, Signals } from './types';
 
 // Backend address. Set VITE_API_URL in .env.local to override.
 export const API_URL = (import.meta.env.VITE_API_URL ?? 'http://127.0.0.1:8000').replace(/\/$/, '');
@@ -35,6 +35,11 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   }
 
   return response.json() as Promise<T>;
+}
+
+export function getSignals(symbol: string, minConfidence: number, signal?: AbortSignal): Promise<Signals> {
+  const query = new URLSearchParams({ min_confidence: String(minConfidence) });
+  return getJson<Signals>(`/signals/${encodeURIComponent(symbol)}?${query}`, signal);
 }
 
 export function getPrediction(symbol: string, horizon: Horizon, signal?: AbortSignal): Promise<Prediction> {

@@ -345,7 +345,19 @@ function PriceChart({ forecast }: PriceChartProps) {
 
     return () => {
       controller.abort();
-      socket?.close();
+      if (!socket) return;
+
+      // React StrictMode (dev) mounts effects twice: the first socket is closed
+      // while still connecting. Close it once it opens instead, so the browser
+      // does not report a failed connection.
+      socket.onmessage = null;
+      socket.onerror = null;
+      if (socket.readyState === WebSocket.CONNECTING) {
+        const pending = socket;
+        pending.onopen = () => pending.close();
+      } else {
+        socket.close();
+      }
     };
   }, [range]);
 

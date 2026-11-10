@@ -46,6 +46,55 @@ export interface Prediction {
   disclaimer: string;
 }
 
+// --- Short-horizon direction signals (GET /signals/{symbol}) ---
+
+export interface SignalModelQuality {
+  test_period_start: string;
+  test_period_end: string;
+  test_accuracy: number;
+  always_up_accuracy: number;
+  max_confidence: number;
+  signals_at_threshold: number;
+  hit_rate: number | null;
+  hit_rate_lower_95: number | null;
+}
+
+export interface HorizonSignal {
+  horizon: string;
+  model_version: string;
+  status: 'approved' | 'shadow';
+  status_reasons: string[];
+  p_up: number;
+  direction: 'up' | 'down';
+  confidence: number;
+  is_signal: boolean;
+  target_time: string;
+  quality: SignalModelQuality;
+}
+
+export interface JournalEntry {
+  horizon: string;
+  signal_time: string;
+  target_time: string;
+  direction: 'up' | 'down';
+  confidence: number;
+  price_at_signal: number;
+  outcome_price: number | null;
+  correct: boolean | null;
+  model_status: string;
+}
+
+export interface Signals {
+  symbol: string;
+  generated_at: string;
+  data_as_of: string;
+  threshold: number;
+  horizons: HorizonSignal[];
+  history: JournalEntry[];
+  live: { signals: number; resolved: number; correct: number; hit_rate: number | null };
+  disclaimer: string;
+}
+
 export type ApiErrorCode =
   | 'MODEL_NOT_AVAILABLE'
   | 'DATA_NOT_AVAILABLE'
