@@ -1,0 +1,68 @@
+.forecast-placeholder {
+  margin: 18px 0 6px;
+  color: #87938d;
+  font-size: 11px;
+}
+
+.forecast-placeholder.error,
+.forecast-meta .error {
+  color: #d0505b;
+}
+
+.probability-row strong.muted {
+  color: #6f7c76;
+  font-weight: 600;
+}
+
+.forecast-meta {
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #eff2f0;
+  color: #9aa59f;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.range-bar {
+  margin-bottom: 14px;
+}
+
+.range-track {
+  position: relative;
+  height: 8px;
+  border-radius: 8px;
+  background: #edf2ef;
+}
+
+.range-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f7d3d6 0%, #e3f3ec 50%, #c9eedf 100%);
+}
+
+.range-marker {
+  position: absolute;
+  top: 50%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #fff;
+  border-radius: 50%;
+  background: #18251f;
+  box-shadow: 0 1px 4px rgba(24, 37, 31, .3);
+  transform: translate(-50%, -50%);
+}
+
+.range-labels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  color: #7f8c85;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.range-current {
+  color: #34443c;
+  font-weight: 600;
+}

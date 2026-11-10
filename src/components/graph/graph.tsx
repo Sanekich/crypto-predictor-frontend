@@ -1,6 +1,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as echarts from 'echarts';
+import type { Prediction } from '../../api/types';
 import './graph.css';
 
 type Range = '1D' | '1M' | '3M' | '1Y' | '5Y' | 'ALL';
@@ -25,7 +26,21 @@ const intervalMs: Record<string, number> = {
 
 const ALL_START = Date.UTC(2017, 7, 17);
 
-function TradingViewWidget() {
+// The 24h forecast cone is readable only on short ranges
+const FORECAST_RANGES: Range[] = ['1D', '1M'];
+
+const formatUsd = (value: number) =>
+  '$' +
+  value.toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+interface PriceChartProps {
+  forecast?: Prediction | null;
+}
+
+function PriceChart({ forecast }: PriceChartProps) {
   const chartRef = useRef<HTMLDivElement>(null);
   const chartInstance = useRef<echarts.ECharts | null>(null);
 
@@ -58,15 +73,22 @@ function TradingViewWidget() {
           color: '#222222',
         },
         formatter: (params: any) => {
-          const point = params[0];
-          const value = Number(point.value[1]);
+          const price = params.find((p: any) => p.seriesName === 'Bitcoin');
+          if (price) {
+            return `
+              ${new Date(price.value[0]).toLocaleString()}<br/>
+              <b>${formatUsd(Number(price.value[1]))}</b>
+            `;
+          }
 
+          const lower = params.find((p: any) => p.seriesName === 'forecast-lower');
+          const band = params.find((p: any) => p.seriesName === 'forecast-band');
+          if (!lower || !band) return '';
+          const low = Number(lower.value[1]);
+          const high = low + Number(band.value[1]);
           return `
-            ${new Date(point.value[0]).toLocaleString()}<br/>
-            <b>$${value.toLocaleString('en-US', {
-              minimumFractionDigits: 2,
-              maximumFractionDigits: 2,
-            })}</b>
+            ${new Date(lower.value[0]).toLocaleString()}<br/>
+            Прогноз (80%): <b>${formatUsd(low)} — ${formatUsd(high)}</b>
           `;
         },
       },
@@ -122,6 +144,34 @@ function TradingViewWidget() {
             ]),
           },
         },
+        // Forecast cone: an invisible lower line plus a stacked band up to the upper bound
+        {
+          name: 'forecast-lower',
+          type: 'line',
+          stack: 'forecast',
+          data: [],
+          showSymbol: false,
+          lineStyle: { opacity: 0 },
+          silent: true,
+        },
+        {
+          name: 'forecast-band',
+          type: 'line',
+          stack: 'forecast',
+          data: [],
+          showSymbol: false,
+          lineStyle: { opacity: 0 },
+          areaStyle: { color: 'rgba(19, 174, 128, 0.14)' },
+          silent: true,
+        },
+        {
+          name: 'forecast-median',
+          type: 'line',
+          data: [],
+          showSymbol: false,
+          lineStyle: { color: '#13ae80', width: 1.5, type: 'dashed' },
+          silent: true,
+        },
       ],
     });
 
@@ -150,6 +200,29 @@ function TradingViewWidget() {
       ],
     });
   }, [data]);
+
+  // Draw the forecast cone from the last closed candle to the forecast horizon
+  useEffect(() => {
+    if (!chartInstance.current) return;
+
+    const visible = forecast && FORECAST_RANGES.includes(range);
+    let lower: [number, number][] = [];
+    let band: [number, number][] = [];
+    let median: [number, number][] = [];
+
+    if (visible) {
+      const start = Date.parse(forecast.data_as_of);
+      const end = Date.parse(forecast.target_time);
+      const now = forecast.current_price;
+      lower = [[start, now], [end, forecast.range.lower_price]];
+      band = [[start, 0], [end, forecast.range.upper_price - forecast.range.lower_price]];
+      median = [[start, now], [end, forecast.median_price]];
+    }
+
+    chartInstance.current.setOption({
+      series: [{}, { data: lower }, { data: band }, { data: median }],
+    });
+  }, [forecast, range]);
 
   // Load historical data and connect WebSocket
   useEffect(() => {
@@ -329,4 +402,4 @@ function TradingViewWidget() {
   );
 }
 
-export default TradingViewWidget;
+export default PriceChart;
