@@ -1,0 +1,106 @@
+
+.bitcoin-widget {
+  width: 100%;
+  height: 100%;
+  min-height: 350px;
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 8px;
+  overflow: hidden;
+  font-family:
+    -apple-system,
+    BlinkMacSystemFont,
+    Trebuchet MS,
+    Roboto,
+    Ubuntu,
+    sans-serif;
+  box-sizing: border-box;
+}
+
+.bitcoin-header {
+  padding: 16px 20px 8px;
+}
+
+.bitcoin-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #0f0f0f;
+}
+
+.bitcoin-price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 34px;
+  font-weight: 600;
+  color: #0f0f0f;
+}
+
+.bitcoin-price span {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.bitcoin-ranges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+}
+
+.bitcoin-ranges button {
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  padding: 9px 13px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #0f0f0f;
+  transition: background 0.2s;
+}
+
+.bitcoin-ranges button:hover {
+  background: #f3f3f3;
+}
+
+.bitcoin-ranges button.active {
+  background: #f0f0f0;
+  font-weight: 600;
+}
+
+.bitcoin-chart {
+  width: 100%;
+  height: calc(100% - 145px);
+  min-height: 250px;
+}
+
+.bitcoin-status {
+  padding: 8px 20px;
+  color: #777777;
+  font-size: 13px;
+}
+
+.bitcoin-status.error {
+  color: #f7525f;
+}
+
+@media (max-width: 500px) {
+  .bitcoin-title {
+    font-size: 17px;
+  }
+
+  .bitcoin-price {
+    font-size: 27px;
+  }
+
+  .bitcoin-ranges {
+    gap: 2px;
+    padding: 10px;
+  }
+
+  .bitcoin-ranges button {
+    padding: 8px;
+    font-size: 12px;
+  }
+}
