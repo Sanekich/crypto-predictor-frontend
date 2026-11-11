@@ -18,9 +18,12 @@ export function getOperationStatus(signal?: AbortSignal): Promise<OperationJob[]
 }
 
 export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string): Promise<OperationJob> {
+  const bytes = new TextEncoder().encode(token);
+  let binary = '';
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
   const response = await fetch(`${API_URL}/operations/run`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Operations-Token': token },
+    headers: { 'Content-Type': 'application/json', 'X-Operations-Token-B64': btoa(binary) },
     body: JSON.stringify({ action, horizon }),
   });
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
