@@ -48,6 +48,28 @@ function MonitoringPage({ state }: Props) {
             <StatusCard title="Пропуски" ok={snapshot.data.gap_count === 0} value={String(snapshot.data.missing_candles)} detail={`${snapshot.data.gap_count} разрывов в данных`} />
           </section>
 
+          <section className="monitoring-panel stage-panel">
+            <div className="monitoring-panel-heading">
+              <div>
+                <p className="eyebrow">ПЛАН ОБУЧЕНИЯ</p>
+                <h2>Текущий этап: {snapshot.training.current_label}</h2>
+              </div>
+              <span className={`monitoring-chip ${snapshot.training.next_ready ? 'ok' : 'check'}`}>
+                {snapshot.training.next_ready ? 'можно тестировать' : 'собирать данные'}
+              </span>
+            </div>
+            <p className="stage-recommendation">{snapshot.training.recommendation}</p>
+            <div className="stage-list">
+              {snapshot.training.stages.map((stage) => (
+                <div className={`stage-row ${stage.state}`} key={stage.stage}>
+                  <span className="stage-number">{stage.stage}</span>
+                  <div className="stage-copy"><strong>{stage.label}</strong><span>{stage.description}</span></div>
+                  <span className="stage-state">{stage.state === 'current' ? 'текущий' : stage.state === 'completed' ? 'пройден' : stage.state === 'ready_to_test' ? 'готов' : `${stage.coverage_hours} ч / 168 ч`}</span>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className="monitoring-panel">
             <div className="monitoring-panel-heading">
               <div>

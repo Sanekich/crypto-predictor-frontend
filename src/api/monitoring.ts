@@ -33,6 +33,26 @@ export interface DataStatus {
   errors: string[];
 }
 
+export interface TrainingStage {
+  stage: number;
+  label: string;
+  description: string;
+  datasets: string[];
+  files: number;
+  coverage_hours: number;
+  ready: boolean;
+  state: 'completed' | 'current' | 'ready_to_test' | 'collecting';
+}
+
+export interface TrainingStageStatus {
+  current_stage: number;
+  current_label: string;
+  next_stage: number | null;
+  next_ready: boolean;
+  recommendation: string;
+  stages: TrainingStage[];
+}
+
 export interface ModelSummary {
   model_id: string;
   model_type: string;
@@ -48,19 +68,21 @@ export interface MonitoringSnapshot {
   live: LiveStatus | null;
   liveError?: string;
   data: DataStatus;
+  training: TrainingStageStatus;
   models: ModelSummary[];
 }
 
 export async function getMonitoringSnapshot(symbol: string, signal?: AbortSignal): Promise<MonitoringSnapshot> {
-  const [health, data, models] = await Promise.all([
+  const [health, data, training, models] = await Promise.all([
     getJsonForMonitoring<HealthStatus>('/health', signal),
     getJsonForMonitoring<DataStatus>(`/data/status/${encodeURIComponent(symbol)}?interval=1h`, signal),
+    getJsonForMonitoring<TrainingStageStatus>(`/training/stage/${encodeURIComponent(symbol)}`, signal),
     getJsonForMonitoring<ModelSummary[]>('/models', signal),
   ]);
   try {
     const live = await getJsonForMonitoring<LiveStatus>(`/live/status/${encodeURIComponent(symbol)}`, signal);
-    return { health, live, data, models };
+    return { health, live, data, training, models };
   } catch (error) {
-    return { health, live: null, liveError: error instanceof Error ? error.message : 'Live collector is unavailable', data, models };
+    return { health, live: null, liveError: error instanceof Error ? error.message : 'Live collector is unavailable', data, training, models };
   }
 }
