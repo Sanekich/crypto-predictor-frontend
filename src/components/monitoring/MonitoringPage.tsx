@@ -44,6 +44,8 @@ function MonitoringPage({ state }: Props) {
             <StatusCard title="Live-сборщик" ok={liveOk} value={statusLabel(liveOk)} detail={updatedAt ? `Обновлено ${formatDateTime(updatedAt)}` : 'Нет времени обновления'} />
             <StatusCard title="Ошибки парсинга" ok={(live?.parse_errors ?? 0) === 0} value={String(live?.parse_errors ?? 0)} detail="За последний статус collector" />
             <StatusCard title="Модели" ok={snapshot.models.length > 0} value={String(snapshot.models.length)} detail="Сохранено в registry" />
+            <StatusCard title="Свечи в выборке" ok={snapshot.data.is_valid} value={snapshot.data.rows.toLocaleString('ru-RU')} detail="Исторический 1h датасет" />
+            <StatusCard title="Пропуски" ok={snapshot.data.gap_count === 0} value={String(snapshot.data.missing_candles)} detail={`${snapshot.data.gap_count} разрывов в данных`} />
           </section>
 
           <section className="monitoring-panel">
