@@ -27,7 +27,7 @@ function App() {
               <path d="M14.5 6H20v5.5" />
             </svg>
           </span>
-          <span>crypto<span className="brand-light">pred</span></span>
+          <span>crypto<span className="brand-light">predictor</span></span>
         </a>
 
         <nav className="topnav" aria-label="Разделы">
