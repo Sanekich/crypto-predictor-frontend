@@ -41,7 +41,7 @@ function MonitoringPage({ state }: Props) {
         <>
           <section className="monitoring-grid">
             <StatusCard title="API" ok={snapshot.health.status === 'ok'} value={snapshot.health.status === 'ok' ? 'Работает' : snapshot.health.status} detail={`Версия ${snapshot.health.version}`} />
-            <StatusCard title="Live-сборщик" ok={liveOk} value={statusLabel(liveOk)} detail={updatedAt ? `Обновлено ${formatDateTime(updatedAt)}` : 'Нет времени обновления'} />
+            <StatusCard title="Live-сборщик" ok={liveOk} value={live ? statusLabel(liveOk) : 'НЕ ЗАПУЩЕН'} detail={updatedAt ? `Обновлено ${formatDateTime(updatedAt)}` : 'Запусти локальный collector'} />
             <StatusCard title="Ошибки парсинга" ok={(live?.parse_errors ?? 0) === 0} value={String(live?.parse_errors ?? 0)} detail="За последний статус collector" />
             <StatusCard title="Модели" ok={snapshot.models.length > 0} value={String(snapshot.models.length)} detail="Сохранено в registry" />
             <StatusCard title="Свечи в выборке" ok={snapshot.data.is_valid} value={snapshot.data.rows.toLocaleString('ru-RU')} detail="Исторический 1h датасет" />
@@ -54,7 +54,7 @@ function MonitoringPage({ state }: Props) {
                 <p className="eyebrow">ИСТОЧНИКИ</p>
                 <h2>Подключения live-сборщика</h2>
               </div>
-              <span className={`monitoring-chip ${liveOk ? 'ok' : 'check'}`}>{liveOk ? 'актуально' : 'устарело'}</span>
+              <span className={`monitoring-chip ${liveOk ? 'ok' : 'check'}`}>{live ? (liveOk ? 'актуально' : 'устарело') : 'локальный запуск'}</span>
             </div>
             <div className="connection-list">
               {connections.length > 0 ? connections.map(([name, item]) => (
@@ -63,7 +63,7 @@ function MonitoringPage({ state }: Props) {
                   <span>{name}</span>
                   <strong>{item.connected ? 'подключено' : 'нет связи'}</strong>
                 </div>
-              )) : <p className="monitoring-muted">Нет данных о подключениях.</p>}
+              )) : <p className="monitoring-muted">Collector не запущен. Выполни <code>python scripts/start_backend_with_collector.py</code> в backend.</p>}
             </div>
           </section>
 
@@ -89,7 +89,7 @@ function MonitoringPage({ state }: Props) {
             </div>
           </section>
 
-          <p className="monitoring-note">Страница обновляется автоматически раз в минуту. Статус `shadow` означает, что модель наблюдается и ещё не допущена как подтверждённый сигнал.</p>
+          <p className="monitoring-note">Локальный режим: API должен работать на <code>http://127.0.0.1:8000</code>, а collector — отдельным процессом. Страница обновляется автоматически раз в минуту. Статус `shadow` означает, что модель наблюдается и ещё не допущена как подтверждённый сигнал.</p>
         </>
       )}
     </main>

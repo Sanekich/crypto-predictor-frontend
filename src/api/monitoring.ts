@@ -18,7 +18,7 @@ export interface LiveStatus {
   updated_at?: string;
   connections?: Record<string, LiveConnection>;
   parse_errors?: number;
-  rows_written?: number;
+  rows_written?: number | Record<string, number>;
   messages?: number;
   [key: string]: unknown;
 }
@@ -45,17 +45,22 @@ export interface ModelSummary {
 
 export interface MonitoringSnapshot {
   health: HealthStatus;
-  live: LiveStatus;
+  live: LiveStatus | null;
+  liveError?: string;
   data: DataStatus;
   models: ModelSummary[];
 }
 
 export async function getMonitoringSnapshot(symbol: string, signal?: AbortSignal): Promise<MonitoringSnapshot> {
-  const [health, live, data, models] = await Promise.all([
+  const [health, data, models] = await Promise.all([
     getJsonForMonitoring<HealthStatus>('/health', signal),
-    getJsonForMonitoring<LiveStatus>(`/live/status/${encodeURIComponent(symbol)}`, signal),
     getJsonForMonitoring<DataStatus>(`/data/status/${encodeURIComponent(symbol)}?interval=1h`, signal),
     getJsonForMonitoring<ModelSummary[]>('/models', signal),
   ]);
-  return { health, live, data, models };
+  try {
+    const live = await getJsonForMonitoring<LiveStatus>(`/live/status/${encodeURIComponent(symbol)}`, signal);
+    return { health, live, data, models };
+  } catch (error) {
+    return { health, live: null, liveError: error instanceof Error ? error.message : 'Live collector is unavailable', data, models };
+  }
 }
