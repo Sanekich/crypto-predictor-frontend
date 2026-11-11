@@ -1,11 +1,13 @@
 import './App.css'
 import Graph from './components/graph/graph'
+import MonitoringPage from './components/monitoring/MonitoringPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
 import SignalsPage from './components/signals/SignalsPage'
 import { usePrediction } from './hooks/usePrediction'
 import { routeHref, useRoute } from './hooks/useRoute'
 import { useSignals } from './hooks/useSignals'
+import { useMonitoring } from './hooks/useMonitoring'
 import { formatTime } from './utils/format'
 
 const SYMBOL = 'BTCUSDT'
@@ -15,6 +17,7 @@ function App() {
   const day = usePrediction(SYMBOL, '24h')
   const week = usePrediction(SYMBOL, '7d')
   const signals = useSignals(SYMBOL)
+  const monitoring = useMonitoring(SYMBOL)
   const dataAsOf = day.data?.data_as_of ?? signals.data?.data_as_of ?? week.data?.data_as_of
 
   return (
@@ -33,6 +36,7 @@ function App() {
         <nav className="topnav" aria-label="Разделы">
           <a href={routeHref.overview} className={route === 'overview' ? 'active' : ''}>Обзор</a>
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
+          <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
         </nav>
 
         <div className="topbar-note">
@@ -43,6 +47,8 @@ function App() {
 
       {route === 'signals' ? (
         <SignalsPage state={signals} />
+      ) : route === 'monitoring' ? (
+        <MonitoringPage state={monitoring} />
       ) : (
         <>
           <section className="intro">

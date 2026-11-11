@@ -37,6 +37,8 @@ async function getJson<T>(path: string, signal?: AbortSignal): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+export const getJsonForMonitoring = getJson;
+
 export function getSignals(symbol: string, minConfidence: number, signal?: AbortSignal): Promise<Signals> {
   const query = new URLSearchParams({ min_confidence: String(minConfidence) });
   return getJson<Signals>(`/signals/${encodeURIComponent(symbol)}?${query}`, signal);
