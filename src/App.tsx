@@ -1,6 +1,7 @@
 import './App.css'
 import Graph from './components/graph/graph'
 import MonitoringPage from './components/monitoring/MonitoringPage'
+import TestsPage from './components/tests/TestsPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
 import SignalsPage from './components/signals/SignalsPage'
@@ -37,6 +38,7 @@ function App() {
           <a href={routeHref.overview} className={route === 'overview' ? 'active' : ''}>Обзор</a>
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
+          <a href={routeHref.tests} className={route === 'tests' ? 'active' : ''}>Тесты</a>
         </nav>
 
         <div className="topbar-note">
@@ -49,6 +51,8 @@ function App() {
         <SignalsPage state={signals} />
       ) : route === 'monitoring' ? (
         <MonitoringPage state={monitoring} />
+      ) : route === 'tests' ? (
+        <TestsPage />
       ) : (
         <>
           <section className="intro">
