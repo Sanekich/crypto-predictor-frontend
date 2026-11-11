@@ -23,12 +23,16 @@ function errorText(error: ApiError) {
 }
 
 function directionText(direction: DirectionForecast) {
-  if (direction.available && direction.up_probability !== null) {
-    return `Вероятность роста ${formatShare(direction.up_probability)}`;
+  if (direction.available && direction.direction && direction.confidence !== null && direction.confidence !== undefined) {
+    const label = direction.direction === 'up' ? 'рост' : 'падение';
+    const status = direction.status === 'shadow' ? ' · эксперимент' : '';
+    return `${label} · ${formatShare(direction.confidence)}${status}`;
   }
   switch (direction.reason) {
     case 'NO_MODEL':
       return 'Направление не прогнозируется';
+    case 'SHADOW':
+      return 'Экспериментальный прогноз';
     default:
       return 'Выраженного направления нет';
   }

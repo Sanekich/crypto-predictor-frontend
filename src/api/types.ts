@@ -18,7 +18,11 @@ export type DirectionReason = 'NO_SIGNAL' | 'NO_MODEL' | 'NOT_CALIBRATED';
 export interface DirectionForecast {
   available: boolean;
   up_probability: number | null;
-  reason: DirectionReason | null;
+  direction?: 'up' | 'down' | null;
+  confidence?: number | null;
+  status?: 'approved' | 'shadow' | null;
+  model_version?: string | null;
+  reason: DirectionReason | 'SHADOW' | null;
 }
 
 export interface ModelQuality {
