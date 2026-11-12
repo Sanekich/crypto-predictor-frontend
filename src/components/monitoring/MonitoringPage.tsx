@@ -26,8 +26,16 @@ function MonitoringPage({ state }: Props) {
   const liveFresh = ageMinutes <= 180 && (live?.parse_errors ?? 0) === 0;
   const liveOk = connected && liveFresh;
   const visibleModels = (snapshot?.models ?? []).filter((model) => !deleted.has(model.model_id));
-  const activeModels = visibleModels.filter((model) => model.is_latest);
-  const historyModels = visibleModels.filter((model) => !model.is_latest);
+  const latestByKey = new Map<string, string>();
+  visibleModels.forEach((model) => {
+    const key = `${model.model_type}|${model.symbol}|${model.interval}|${model.horizon}`;
+    const currentId = latestByKey.get(key);
+    const current = visibleModels.find((candidate) => candidate.model_id === currentId);
+    if (!current || new Date(model.trained_at).getTime() > new Date(current.trained_at).getTime()) latestByKey.set(key, model.model_id);
+  });
+  const isLatest = (model: MonitoringSnapshot['models'][number]) => latestByKey.get(`${model.model_type}|${model.symbol}|${model.interval}|${model.horizon}`) === model.model_id;
+  const activeModels = visibleModels.filter(isLatest);
+  const historyModels = visibleModels.filter((model) => !isLatest(model));
 
   async function removeModel(modelId: string) {
     if (!token || !window.confirm('Удалить эту старую shadow-модель? Восстановить её через интерфейс нельзя.')) return;
