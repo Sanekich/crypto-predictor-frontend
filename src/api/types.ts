@@ -74,6 +74,10 @@ export interface HorizonSignal {
   direction: 'up' | 'down';
   confidence: number;
   is_signal: boolean;
+  has_skill?: boolean;
+  walk_forward_skill?: number | null;
+  walk_forward_positive_folds?: number | null;
+  walk_forward_folds?: number | null;
   target_time: string;
   quality: SignalModelQuality;
 }

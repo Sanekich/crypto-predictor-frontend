@@ -40,6 +40,8 @@ export interface TrainingStage {
   datasets: string[];
   files: number;
   coverage_hours: number;
+  required_hours?: number;
+  source?: 'history' | 'live';
   ready: boolean;
   state: 'completed' | 'current' | 'ready_to_test' | 'collecting';
 }

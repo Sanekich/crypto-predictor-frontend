@@ -15,12 +15,17 @@ function TestsPage() {
   const [jobs, setJobs] = useState<OperationJob[]>([]);
   const [error, setError] = useState<string | null>(null);
 
-  const refresh = () => getOperationStatus().then(setJobs).catch((err) => setError(err.message));
+  const refresh = () => {
+    if (!token) return;
+    getOperationStatus(token).then(setJobs).catch((err) => setError(err.message));
+  };
   useEffect(() => {
+    if (!token) return;
     refresh();
     const timer = window.setInterval(refresh, 5000);
     return () => window.clearInterval(timer);
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
   async function run(action: OperationAction) {
     setError(null);
@@ -49,7 +54,7 @@ function TestsPage() {
         {error && <p className="tests-error">{error}</p>}
       </section>
 
-      <section className="tests-panel"><div className="tests-panel-heading"><div><p className="eyebrow">ИСТОРИЯ</p><h2>Последние запуски</h2></div><button className="tests-refresh" onClick={refresh}>Обновить</button></div><div className="tests-jobs">{jobs.length === 0 ? <p className="tests-muted">Запусков пока нет.</p> : jobs.map((job) => <JobRow key={job.job_id} job={job} />)}</div></section>
+      <section className="tests-panel"><div className="tests-panel-heading"><div><p className="eyebrow">ИСТОРИЯ</p><h2>Последние запуски</h2></div><button className="tests-refresh" onClick={refresh}>Обновить</button></div><div className="tests-jobs">{!token ? <p className="tests-muted">Введите токен операций, чтобы видеть журнал запусков.</p> : jobs.length === 0 ? <p className="tests-muted">Запусков пока нет.</p> : jobs.map((job) => <JobRow key={job.job_id} job={job} />)}</div></section>
     </main>
   );
 }

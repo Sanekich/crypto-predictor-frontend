@@ -1,4 +1,4 @@
-import { getJsonForMonitoring, API_URL } from './client';
+import { API_URL } from './client';
 
 export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report';
 
@@ -13,8 +13,18 @@ export interface OperationJob {
   return_code: number | null;
 }
 
-export function getOperationStatus(signal?: AbortSignal): Promise<OperationJob[]> {
-  return getJsonForMonitoring<OperationJob[]>('/operations/status', signal);
+function tokenHeader(token: string): Record<string, string> {
+  const bytes = new TextEncoder().encode(token);
+  let binary = '';
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  return { 'X-Operations-Token-B64': btoa(binary) };
+}
+
+/** The job log is protected by the operations token on the backend. */
+export async function getOperationStatus(token: string, signal?: AbortSignal): Promise<OperationJob[]> {
+  const response = await fetch(`${API_URL}/operations/status`, { headers: tokenHeader(token), signal });
+  if (!response.ok) throw new Error((await response.text()) || `Status failed (${response.status})`);
+  return response.json() as Promise<OperationJob[]>;
 }
 
 export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string): Promise<OperationJob> {

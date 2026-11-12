@@ -91,7 +91,7 @@ function MonitoringPage({ state }: Props) {
                 <div className={`stage-row ${stage.state}`} key={stage.stage}>
                   <span className="stage-number">{stage.stage}</span>
                   <div className="stage-copy"><strong>{stage.label}</strong><span>{stage.description}</span></div>
-                  <span className="stage-state">{stage.state === 'current' ? 'текущий' : stage.state === 'completed' ? 'пройден' : stage.state === 'ready_to_test' ? 'готов' : `${stage.coverage_hours} ч / 168 ч`}</span>
+                  <span className="stage-state">{stage.state === 'current' ? 'текущий' : stage.state === 'completed' ? 'пройден' : stage.state === 'ready_to_test' ? 'готов' : (stage.required_hours ? `${Math.floor(stage.coverage_hours / 24)} из ${Math.round(stage.required_hours / 24)} дн.` : 'нужна загрузка истории')}</span>
                 </div>
               ))}
             </div>

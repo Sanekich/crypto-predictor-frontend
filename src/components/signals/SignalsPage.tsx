@@ -108,6 +108,11 @@ function SignalCard({ signal }: { signal: HorizonSignal }) {
         <strong>{formatShare(q.always_up_accuracy)} / {formatShare(q.always_down_accuracy)}</strong>
       </div>
 
+      <div className="probability-row">
+        <span>Проверка по периодам (walk-forward)</span>
+        <strong className={signal.has_skill ? '' : 'muted'}>{skillText(signal)}</strong>
+      </div>
+
       <div className={`status-note ${signal.status}`}>
         <strong>{statusText(signal)}</strong>
         {signal.status_reasons.length > 0 && (
@@ -120,6 +125,12 @@ function SignalCard({ signal }: { signal: HorizonSignal }) {
       </div>
     </article>
   );
+}
+
+function skillText(signal: HorizonSignal): string {
+  if (signal.walk_forward_folds == null || signal.walk_forward_positive_folds == null) return 'не проводилась';
+  const folds = `лучше ориентира в ${signal.walk_forward_positive_folds} из ${signal.walk_forward_folds}`;
+  return signal.has_skill ? `есть слабый сигнал · ${folds}` : `сигнала нет · ${folds}`;
 }
 
 function SignalHistory({ data }: { data: Signals }) {

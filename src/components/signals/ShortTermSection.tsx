@@ -48,7 +48,7 @@ function ShortTermSection({ state }: Props) {
 
 function ShortTermCard({ signal }: { signal: HorizonSignal }) {
   const up = signal.p_up;
-  const strong = signal.confidence >= SIGNAL_THRESHOLD;
+  const strong = signal.is_signal;
 
   return (
     <article className="forecast-card short-card">
@@ -69,6 +69,14 @@ function ShortTermCard({ signal }: { signal: HorizonSignal }) {
         <span>вверх {formatShare(up)}</span>
       </div>
 
+      <div className="probability-row">
+        <span>Проверка по периодам</span>
+        <strong className={signal.has_skill ? '' : 'muted'}>
+          {signal.walk_forward_folds == null
+            ? 'не проводилась'
+            : `${signal.has_skill ? 'слабый сигнал' : 'сигнала нет'} · ${signal.walk_forward_positive_folds}/${signal.walk_forward_folds}`}
+        </strong>
+      </div>
       <div className="probability-row">
         <span>Сигнал ≥ {formatShare(SIGNAL_THRESHOLD)}</span>
         <strong className={strong ? '' : 'muted'}>
