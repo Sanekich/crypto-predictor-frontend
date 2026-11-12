@@ -98,10 +98,14 @@ function SignalCard({ signal }: { signal: HorizonSignal }) {
         </strong>
       </div>
       <div className="probability-row">
-        <span>Точность в целом / «всегда рост»</span>
+        <span>Точность модели / baseline большинства</span>
         <strong>
-          {formatShare(q.test_accuracy)} / {formatShare(q.always_up_accuracy)}
+          {formatShare(q.test_accuracy)} / {formatShare(q.majority_baseline_accuracy)}
         </strong>
+      </div>
+      <div className="probability-row">
+        <span>Если всегда рост / если всегда падение</span>
+        <strong>{formatShare(q.always_up_accuracy)} / {formatShare(q.always_down_accuracy)}</strong>
       </div>
 
       <div className={`status-note ${signal.status}`}>

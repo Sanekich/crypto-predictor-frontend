@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import type { MonitoringSnapshot } from '../../api/monitoring';
+import { deleteOldModel } from '../../api/operations';
 import type { RemoteState } from '../../hooks/usePolling';
 import { formatDateTime } from '../../utils/format';
 import './monitoring.css';
@@ -12,6 +14,9 @@ function statusLabel(ok: boolean) {
 }
 
 function MonitoringPage({ state }: Props) {
+  const [token, setToken] = useState('');
+  const [deleted, setDeleted] = useState<Set<string>>(new Set());
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const snapshot = state.data;
   const live = snapshot?.live;
   const connections = Object.entries(live?.connections ?? {});
@@ -20,6 +25,20 @@ function MonitoringPage({ state }: Props) {
   const ageMinutes = updatedAt ? (Date.now() - new Date(updatedAt).getTime()) / 60_000 : Infinity;
   const liveFresh = ageMinutes <= 180 && (live?.parse_errors ?? 0) === 0;
   const liveOk = connected && liveFresh;
+  const visibleModels = (snapshot?.models ?? []).filter((model) => !deleted.has(model.model_id));
+  const activeModels = visibleModels.filter((model) => model.is_latest);
+  const historyModels = visibleModels.filter((model) => !model.is_latest);
+
+  async function removeModel(modelId: string) {
+    if (!token || !window.confirm('Удалить эту старую shadow-модель? Восстановить её через интерфейс нельзя.')) return;
+    setDeleteError(null);
+    try {
+      await deleteOldModel(modelId, token);
+      setDeleted((current) => new Set(current).add(modelId));
+    } catch (error) {
+      setDeleteError(error instanceof Error ? error.message : 'Не удалось удалить модель');
+    }
+  }
 
   return (
     <main className="monitoring-page">
@@ -97,17 +116,17 @@ function MonitoringPage({ state }: Props) {
               </div>
             </div>
             <div className="model-list">
-              {snapshot.models.map((model) => (
-                <div className="model-row" key={model.model_id}>
-                  <div>
-                    <strong>{model.horizon}</strong>
-                    <span>{model.model_type} · {model.symbol}</span>
-                  </div>
-                  <span className={`monitoring-chip ${model.status === 'approved' ? 'ok' : 'shadow'}`}>
-                    {model.status ?? 'n/a'}
-                  </span>
-                </div>
-              ))}
+              <div className="registry-controls">
+                <label>Токен операций<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
+                <span>Удалять можно только старые shadow-версии. Последняя версия защищена.</span>
+              </div>
+              {deleteError && <p className="monitoring-error">{deleteError}</p>}
+              <ModelGroup title="Актуальные версии" models={activeModels} isHistory={false} removeModel={removeModel} token={token} />
+              {historyModels.length > 0 && <details className="model-history" open>
+                <summary>История версий ({historyModels.length})</summary>
+                <ModelGroup title="" models={historyModels} isHistory removeModel={removeModel} token={token} />
+              </details>}
+              {visibleModels.length === 0 && <p className="monitoring-muted">Моделей в registry нет.</p>}
             </div>
           </section>
 
@@ -116,6 +135,16 @@ function MonitoringPage({ state }: Props) {
       )}
     </main>
   );
+}
+
+function ModelGroup({ title, models, isHistory, removeModel, token }: { title: string; models: MonitoringSnapshot['models']; isHistory: boolean; removeModel: (modelId: string) => void; token: string }) {
+  return <section className="model-group">
+    {title && <h3>{title}</h3>}
+    {models.map((model) => <div className="model-row" key={model.model_id}>
+      <div><strong>{model.horizon} <em className={isHistory ? 'history-label' : 'latest-label'}>{isHistory ? 'история' : 'актуальная'}</em></strong><span>{model.model_type} · {model.symbol}</span></div>
+      <div className="model-actions"><span className={`monitoring-chip ${model.status === 'approved' ? 'ok' : 'shadow'}`}>{model.status ?? 'n/a'}</span>{isHistory && model.status !== 'approved' && <button className="model-delete" disabled={!token} onClick={() => removeModel(model.model_id)}>Удалить</button>}</div>
+    </div>)}
+  </section>;
 }
 
 function StatusCard({ title, ok, value, detail }: { title: string; ok: boolean; value: string; detail: string }) {

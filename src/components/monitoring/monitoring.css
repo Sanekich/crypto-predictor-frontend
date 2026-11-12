@@ -69,13 +69,26 @@
 .monitoring-panel-heading .eyebrow { margin-bottom: 5px; }
 .monitoring-chip { padding: 5px 7px; }
 .connection-list, .model-list { border-top: 1px solid #eff2f0; }
+.registry-controls { display: flex; align-items: center; gap: 14px; padding: 12px 0; border-bottom: 1px solid #eff2f0; color: #89968f; font-size: 10px; }
+.registry-controls label { display: flex; align-items: center; gap: 8px; color: #51625a; font-size: 10px; }
+.registry-controls input { width: 145px; padding: 7px 9px; border: 1px solid #dfe8e3; border-radius: 6px; color: #34423b; font-size: 11px; }
+.model-group h3, .model-history summary { margin: 12px 0 0; color: #51625a; font-size: 10px; font-weight: 700; letter-spacing: .5px; text-transform: uppercase; }
+.model-history { border-top: 1px solid #eff2f0; }
+.model-history summary { padding: 12px 0 2px; cursor: pointer; }
 .connection-row, .model-row { display: flex; align-items: center; gap: 10px; padding: 12px 0; border-bottom: 1px solid #eff2f0; color: #34423b; font-size: 11px; }
 .connection-row strong { margin-left: auto; color: #88958e; font-size: 10px; font-weight: 550; }
 .model-row { justify-content: space-between; }
 .model-row > div { display: flex; align-items: baseline; gap: 10px; }
 .model-row strong { color: #1b2923; font-size: 12px; }
 .model-row span { color: #89968f; font-size: 10px; }
+.model-row em { margin-left: 6px; font-style: normal; font-size: 8px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; }
+.latest-label { color: #168b69; }
+.history-label { color: #9aa59f; }
+.model-actions { display: flex; align-items: center; gap: 8px; }
+.model-delete { padding: 5px 8px; border: 1px solid #f0d6d1; border-radius: 6px; background: #fff8f6; color: #b45b50; cursor: pointer; font-size: 9px; }
+.model-delete:disabled { cursor: not-allowed; opacity: .45; }
 .monitoring-muted, .monitoring-note, .monitoring-placeholder { color: #89968f; font-size: 11px; }
+.monitoring-error { margin: 10px 0; color: #b45b50; font-size: 10px; }
 .monitoring-placeholder.error { color: #b45b50; }
 .monitoring-note { margin: 13px 0 0; line-height: 1.5; }
 .stage-recommendation { margin: 0 0 14px; color: #51625a; font-size: 11px; line-height: 1.5; }
@@ -101,4 +114,5 @@
   .monitoring-card > strong { font-size: 18px; }
   .monitoring-panel { padding: 17px 15px; }
   .model-row > div { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .registry-controls { align-items: flex-start; flex-direction: column; }
 }

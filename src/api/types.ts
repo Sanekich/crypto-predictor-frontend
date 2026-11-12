@@ -57,6 +57,8 @@ export interface SignalModelQuality {
   test_period_end: string;
   test_accuracy: number;
   always_up_accuracy: number;
+  always_down_accuracy: number;
+  majority_baseline_accuracy: number;
   max_confidence: number;
   signals_at_threshold: number;
   hit_rate: number | null;

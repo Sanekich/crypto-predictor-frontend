@@ -61,6 +61,7 @@ export interface ModelSummary {
   horizon: string;
   trained_at: string;
   status?: 'approved' | 'shadow' | string;
+  is_latest?: boolean;
 }
 
 export interface MonitoringSnapshot {

@@ -29,3 +29,14 @@ export async function startOperation(action: OperationAction, horizon: '24h' | '
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
   return response.json() as Promise<OperationJob>;
 }
+
+export async function deleteOldModel(modelId: string, token: string): Promise<void> {
+  const bytes = new TextEncoder().encode(token);
+  let binary = '';
+  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+  const response = await fetch(`${API_URL}/models/${encodeURIComponent(modelId)}`, {
+    method: 'DELETE',
+    headers: { 'X-Operations-Token-B64': btoa(binary) },
+  });
+  if (!response.ok) throw new Error((await response.text()) || `Delete failed (${response.status})`);
+}
