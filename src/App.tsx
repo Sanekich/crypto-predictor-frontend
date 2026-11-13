@@ -2,6 +2,7 @@ import './App.css'
 import Graph from './components/graph/graph'
 import MonitoringPage from './components/monitoring/MonitoringPage'
 import TestsPage from './components/tests/TestsPage'
+import BarrierPage from './components/barrier/BarrierPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
 import SignalsPage from './components/signals/SignalsPage'
@@ -39,6 +40,7 @@ function App() {
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
           <a href={routeHref.tests} className={route === 'tests' ? 'active' : ''}>Тесты</a>
+          <a href={routeHref.barrier} className={route === 'barrier' ? 'active' : ''}>Новая логика</a>
         </nav>
 
         <div className="topbar-note">
@@ -53,6 +55,8 @@ function App() {
         <MonitoringPage state={monitoring} />
       ) : route === 'tests' ? (
         <TestsPage />
+      ) : route === 'barrier' ? (
+        <BarrierPage />
       ) : (
         <>
           <section className="intro">

@@ -1,6 +1,6 @@
 import { API_URL } from './client';
 
-export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report';
+export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier';
 export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest';
 
 export interface OperationJob {
@@ -8,6 +8,8 @@ export interface OperationJob {
   action: OperationAction;
   horizon: '24h' | '7d';
   feature_set: FeatureSet;
+  barrier_config?: string | null;
+  barrier_feature_set?: string | null;
   status: 'running' | 'completed' | 'failed';
   started_at: string;
   finished_at: string | null;
@@ -15,7 +17,7 @@ export interface OperationJob {
   return_code: number | null;
 }
 
-function tokenHeader(token: string): Record<string, string> {
+export function tokenHeader(token: string): Record<string, string> {
   const bytes = new TextEncoder().encode(token);
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
