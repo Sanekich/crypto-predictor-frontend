@@ -1,7 +1,7 @@
 import { API_URL } from './client';
 
 export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report';
-export type FeatureSet = 'v1' | 'v2_funding_basis';
+export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest';
 
 export interface OperationJob {
   job_id: string;
