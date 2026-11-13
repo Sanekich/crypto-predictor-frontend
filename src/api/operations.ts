@@ -1,11 +1,13 @@
 import { API_URL } from './client';
 
 export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report';
+export type FeatureSet = 'v1' | 'v2_funding_basis';
 
 export interface OperationJob {
   job_id: string;
   action: OperationAction;
   horizon: '24h' | '7d';
+  feature_set: FeatureSet;
   status: 'running' | 'completed' | 'failed';
   started_at: string;
   finished_at: string | null;
@@ -27,14 +29,14 @@ export async function getOperationStatus(token: string, signal?: AbortSignal): P
   return response.json() as Promise<OperationJob[]>;
 }
 
-export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string): Promise<OperationJob> {
+export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1'): Promise<OperationJob> {
   const bytes = new TextEncoder().encode(token);
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
   const response = await fetch(`${API_URL}/operations/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Operations-Token-B64': btoa(binary) },
-    body: JSON.stringify({ action, horizon }),
+    body: JSON.stringify({ action, horizon, feature_set: featureSet }),
   });
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
   return response.json() as Promise<OperationJob>;

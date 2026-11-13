@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOperationStatus, startOperation, type OperationAction, type OperationJob } from '../../api/operations';
+import { getOperationStatus, startOperation, type FeatureSet, type OperationAction, type OperationJob } from '../../api/operations';
 import './tests.css';
 
 const actions: { action: OperationAction; label: string; description: string }[] = [
@@ -12,6 +12,7 @@ const actions: { action: OperationAction; label: string; description: string }[]
 function TestsPage() {
   const [token, setToken] = useState('');
   const [horizon, setHorizon] = useState<'24h' | '7d'>('24h');
+  const [featureSet, setFeatureSet] = useState<FeatureSet>('v1');
   const [jobs, setJobs] = useState<OperationJob[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,7 +31,7 @@ function TestsPage() {
   async function run(action: OperationAction) {
     setError(null);
     try {
-      await startOperation(action, horizon, token);
+      await startOperation(action, horizon, token, featureSet);
       refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось запустить операцию');
@@ -49,8 +50,9 @@ function TestsPage() {
         <div className="tests-panel-heading"><div><p className="eyebrow">УПРАВЛЕНИЕ</p><h2>Запустить операцию</h2></div><span className={`tests-chip ${running ? 'busy' : 'ready'}`}>{running ? 'занято' : 'готово'}</span></div>
         <label className="tests-field">Токен операций<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
         <div className="tests-horizons"><span>Горизонт</span><button className={horizon === '24h' ? 'active' : ''} onClick={() => setHorizon('24h')}>24 часа</button><button className={horizon === '7d' ? 'active' : ''} onClick={() => setHorizon('7d')}>7 дней</button></div>
+        <label className="tests-field tests-select-field">Набор признаков<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as FeatureSet)}><option value="v1">v1 — OHLCV (baseline)</option><option value="v2_funding_basis">v2 — OHLCV + funding + basis</option></select></label>
         <div className="tests-action-grid">{actions.map((item) => <button className="tests-action" key={item.action} onClick={() => run(item.action)} disabled={running || !token}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
-        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Одновременно разрешена только одна операция.</p>
+        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Обучение всегда сохраняется только как shadow. Для v2 нужен подготовленный timestamp-aligned dataset с funding_rate и basis_mean. Одновременно разрешена только одна операция.</p>
         {error && <p className="tests-error">{error}</p>}
       </section>
 
@@ -60,7 +62,8 @@ function TestsPage() {
 }
 
 function JobRow({ job }: { job: OperationJob }) {
-  return <article className="tests-job"><div className="tests-job-top"><div><strong>{job.action}</strong><span>{job.horizon} · {new Date(job.started_at).toLocaleString('ru-RU')}</span></div><span className={`tests-chip ${job.status}`}>{job.status}</span></div><pre>{job.output || 'Ожидание вывода…'}</pre></article>;
+  const featureLabel = job.feature_set === 'v2_funding_basis' ? 'v2 funding + basis' : 'v1 OHLCV';
+  return <article className="tests-job"><div className="tests-job-top"><div><strong>{job.action}</strong><span>{job.horizon} · {featureLabel} · {new Date(job.started_at).toLocaleString('ru-RU')}</span></div><span className={`tests-chip ${job.status}`}>{job.status}</span></div><pre>{job.output || 'Ожидание вывода…'}</pre></article>;
 }
 
 export default TestsPage;
