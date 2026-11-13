@@ -52,7 +52,7 @@ function TestsPage() {
         <div className="tests-horizons"><span>Горизонт</span><button className={horizon === '24h' ? 'active' : ''} onClick={() => setHorizon('24h')}>24 часа</button><button className={horizon === '7d' ? 'active' : ''} onClick={() => setHorizon('7d')}>7 дней</button></div>
         <label className="tests-field tests-select-field">Набор признаков<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as FeatureSet)}><option value="v1">v1 — OHLCV (baseline)</option><option value="v2_funding_basis">v2 — OHLCV + funding + basis</option></select></label>
         <div className="tests-action-grid">{actions.map((item) => <button className="tests-action" key={item.action} onClick={() => run(item.action)} disabled={running || !token}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
-        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Обучение всегда сохраняется только как shadow. Для v2 нужен подготовленный timestamp-aligned dataset с funding_rate и basis_mean. Одновременно разрешена только одна операция.</p>
+        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Обучение всегда сохраняется только как shadow. Для v2 нужны исторические funding и premium/basis-файлы из <code>data/derivatives</code>. Одновременно разрешена только одна операция.</p>
         {error && <p className="tests-error">{error}</p>}
       </section>
 
