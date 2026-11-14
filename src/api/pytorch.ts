@@ -1,5 +1,27 @@
 import { getJsonForMonitoring } from './client';
 
+export interface PytorchSignal {
+  threshold: number;
+  signals: number | null;
+  independent_signals: number | null;
+  independent_resolved: number | null;
+  independent_hits: number | null;
+  independent_hit_rate: number | null;
+  hit_rate_lower_95: number | null;
+  independent_none: number | null;
+}
+
+export interface PytorchWindow {
+  fold: number;
+  rows: number | null;
+  test_start: string | null;
+  test_end: string | null;
+  accuracy: number | null;
+  brier_skill: number | null;
+  max_confidence: number | null;
+  resolved_share: number | null;
+}
+
 export interface PytorchBarrierModel {
   model_id: string;
   model_type: string;
@@ -18,6 +40,9 @@ export interface PytorchBarrierModel {
   independent_resolved: number | null;
   independent_hit_rate: number | null;
   hit_rate_lower_95: number | null;
+  signals: PytorchSignal[];
+  windows: PytorchWindow[];
+  window_summary: { folds: number; positive_folds: number; mean_brier_skill: number | null };
 }
 
 export interface PytorchExperimentOverview {
