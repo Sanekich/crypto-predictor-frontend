@@ -42,7 +42,7 @@ function App() {
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
           <a href={routeHref.tests} className={route === 'tests' ? 'active' : ''}>Тесты</a>
           <a href={routeHref.barrier} className={route === 'barrier' ? 'active' : ''}>Новая логика</a>
-          <a href={routeHref.pytorch} className={route === 'pytorch' ? 'active' : ''}>PyTorch</a>
+          <a href={routeHref.pytorch} className={route === 'pytorch' ? 'active' : ''}>Эксперимент</a>
         </nav>
 
         <div className="topbar-note">

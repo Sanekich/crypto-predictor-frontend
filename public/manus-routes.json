@@ -1,1 +1,1 @@
-{"routes":[{"path":"/","title":"Обзор"},{"path":"/signals","title":"Сигналы"},{"path":"/monitoring","title":"Мониторинг"},{"path":"/tests","title":"Тесты"},{"path":"/barrier","title":"Новая логика"},{"path":"/pytorch","title":"PyTorch"}]}
+{"routes":[{"path":"/","title":"Обзор"},{"path":"/signals","title":"Сигналы"},{"path":"/monitoring","title":"Мониторинг"},{"path":"/tests","title":"Тесты"},{"path":"/barrier","title":"Новая логика"},{"path":"/pytorch","title":"Эксперимент"}]}

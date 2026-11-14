@@ -28,14 +28,14 @@ export default function PyTorchPage() {
   }
 
   return <main className="pytorch-page">
-    <section className="pytorch-hero"><div><p className="eyebrow">SEQUENCE CHALLENGER</p><h1>PyTorch GRU</h1><p>Независимая shadow-модель, которая видит последовательность последних 168 часов.</p></div><span className="pytorch-badge">shadow only</span></section>
+    <section className="pytorch-hero"><div><p className="eyebrow">ЭКСПЕРИМЕНТ · SEQUENCE CHALLENGER</p><h1>PyTorch GRU</h1><p>Изолированная shadow-модель: видит последние 168 часов и не заменяет существующие модели.</p></div><span className="pytorch-badge">experiment · shadow only</span></section>
     <section className="pytorch-panel">
       <div className="pytorch-heading"><div><p className="eyebrow">ОБУЧЕНИЕ</p><h2>Полный набор derivatives</h2></div><span className={`pytorch-chip ${running ? 'busy' : 'ready'}`}>{running ? 'занято' : 'готово'}</span></div>
       <div className="pytorch-facts"><span>OHLCV</span><span>funding</span><span>basis</span><span>open interest</span><span>DVOL</span><span>окно 168h</span></div>
       <label className="pytorch-field">Токен операций<input type="password" value={token} onChange={(e) => setToken(e.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
       <div className="pytorch-horizons"><span>Горизонт</span><button className={horizon === '24h' ? 'active' : ''} onClick={() => setHorizon('24h')}>24 часа</button><button className={horizon === '7d' ? 'active' : ''} onClick={() => setHorizon('7d')}>7 дней</button></div>
       <button className="pytorch-run" onClick={train} disabled={running || !token}>Обучить PyTorch GRU</button>
-      <p className="pytorch-note">Модель обучается только по кнопке, масштабирование считается на train-части, split хронологический. Артефакт сохраняется отдельно и всегда остаётся shadow. Нужна установленная зависимость <code>torch</code>.</p>
+      <p className="pytorch-note">Модель обучается только по кнопке, масштабирование считается на train-части, split хронологический. Артефакт сохраняется в отдельном типе registry и не используется API прогнозов, XGBoost или barrier-моделями. Нужна установленная зависимость <code>torch</code>.</p>
       {error && <p className="pytorch-error">{error}</p>}
     </section>
     <section className="pytorch-panel"><div className="pytorch-heading"><div><p className="eyebrow">ИСТОРИЯ</p><h2>Последние запуски</h2></div><button className="pytorch-refresh" onClick={refresh}>Обновить</button></div>{!token ? <p className="pytorch-muted">Введите токен, чтобы видеть логи.</p> : jobs.filter((job) => job.action === 'train_pytorch').map((job) => <article className="pytorch-job" key={job.job_id}><div><strong>{job.action}</strong><span>{job.horizon} · full derivatives · {new Date(job.started_at).toLocaleString('ru-RU')}</span><em className={job.status}>{job.status}</em></div><pre>{job.output || 'Ожидание вывода…'}</pre></article>)}</section>
