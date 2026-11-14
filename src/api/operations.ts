@@ -1,7 +1,7 @@
 import { API_URL } from './client';
 
-export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier';
-export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest';
+export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_pytorch';
+export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | 'pytorch_full_derivatives';
 
 export interface OperationJob {
   job_id: string;
@@ -45,12 +45,9 @@ export async function startOperation(action: OperationAction, horizon: '24h' | '
 }
 
 export async function deleteOldModel(modelId: string, token: string): Promise<void> {
-  const bytes = new TextEncoder().encode(token);
-  let binary = '';
-  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
   const response = await fetch(`${API_URL}/models/${encodeURIComponent(modelId)}`, {
     method: 'DELETE',
-    headers: { 'X-Operations-Token-B64': btoa(binary) },
+    headers: tokenHeader(token),
   });
   if (!response.ok) throw new Error((await response.text()) || `Delete failed (${response.status})`);
 }
