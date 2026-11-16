@@ -40,7 +40,7 @@ export default function PyTorchPage() {
   const running = jobs.some((job) => job.action === 'train_pytorch' && job.status === 'running');
   async function train(featureSet: 'candles' | 'all_data') {
     setError(null);
-    try { await startOperation('train_pytorch', '24h', token, `pytorch_${featureSet}_336h`, featureSet, 336); refreshJobs(); }
+    try { await startOperation('train_pytorch', '24h', token, 'pytorch_full_derivatives', featureSet, 336); refreshJobs(); }
     catch (e) { setError(e instanceof Error ? e.message : 'Не удалось запустить обучение'); }
   }
 
