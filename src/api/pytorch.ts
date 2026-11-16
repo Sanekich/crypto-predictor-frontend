@@ -49,6 +49,7 @@ export interface PytorchExperimentOverview {
   target: string;
   feature_set: string;
   pytorch: PytorchBarrierModel | null;
+  pytorch_models: PytorchBarrierModel[];
   xgboost: PytorchBarrierModel | null;
 }
 

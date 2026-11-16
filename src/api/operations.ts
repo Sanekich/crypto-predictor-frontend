@@ -1,7 +1,8 @@
 import { API_URL } from './client';
 
 export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_pytorch';
-export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | 'pytorch_full_derivatives';
+export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | 'pytorch_full_derivatives' | string;
+export type PytorchFeatureSet = 'candles' | 'all_data';
 
 export interface OperationJob {
   job_id: string;
@@ -31,14 +32,14 @@ export async function getOperationStatus(token: string, signal?: AbortSignal): P
   return response.json() as Promise<OperationJob[]>;
 }
 
-export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1'): Promise<OperationJob> {
+export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1', pytorchFeatureSet: PytorchFeatureSet = 'all_data', pytorchSequenceLength: 168 | 336 = 336): Promise<OperationJob> {
   const bytes = new TextEncoder().encode(token);
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
   const response = await fetch(`${API_URL}/operations/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Operations-Token-B64': btoa(binary) },
-    body: JSON.stringify({ action, horizon, feature_set: featureSet }),
+    body: JSON.stringify({ action, horizon, feature_set: featureSet, pytorch_feature_set: pytorchFeatureSet, pytorch_sequence_length: pytorchSequenceLength }),
   });
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
   return response.json() as Promise<OperationJob>;
