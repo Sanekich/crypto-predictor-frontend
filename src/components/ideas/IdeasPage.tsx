@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { getOperationStatus, startOperation, type OperationAction, type OperationJob } from '../../api/operations';
+import { getExperimentalOverview, type ExperimentalModelCard } from '../../api/experiments';
 import './ideas.css';
 
 type IdeaTab = 'overview' | 'regimes' | 'events' | 'news' | 'barriers' | 'meta';
@@ -26,6 +27,26 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function IdeaCard({ title, status, description, bullets, accent = '' }: { title: string; status: string; description: string; bullets: string[]; accent?: string }) {
   return <article className={`ideas-card ${accent}`}><div className="ideas-card-head"><h3>{title}</h3><span className="ideas-status">{status}</span></div><p>{description}</p><ul>{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul></article>;
+}
+
+const percent = (value: number | null | undefined) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
+const skill = (value: number | null | undefined) => value == null ? '—' : `${value >= 0 ? '+' : ''}${(value * 100).toFixed(2)}%`;
+
+function ExperimentalModelCards() {
+  const [models, setModels] = useState<ExperimentalModelCard[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => {
+    const controller = new AbortController();
+    getExperimentalOverview(controller.signal).then((overview) => setModels(overview.models)).catch((err: Error) => { if (err.name !== 'AbortError') setError(err.message); });
+    return () => controller.abort();
+  }, []);
+  return <section className="ideas-experiment-section"><div className="ideas-section-heading"><div><p className="eyebrow">МОИ НОВЫЕ МОДЕЛИ</p><h2>Сравнение экспериментов</h2></div><span>только shadow</span></div>{error && <p className="ideas-error">Не удалось загрузить карточки: {error}</p>}{!error && models.length === 0 && <p className="ideas-empty">Пока нет сохранённых новых моделей. Запусти обучение выше.</p>}<div className="ideas-model-grid">{models.slice(0, 8).map((model) => <ExperimentalModelCardView key={model.model_id} model={model} />)}</div></section>;
+}
+
+function ExperimentalModelCardView({ model }: { model: ExperimentalModelCard }) {
+  const modelName = model.model_type === 'xgboost_state_aware_barrier' ? 'State-aware barrier' : 'PyTorch GRU challenger';
+  const isPositive = (model.mean_brier_skill ?? 0) > 0;
+  return <article className="ideas-model-card"><div className="ideas-model-top"><div><strong>{modelName}</strong><small>{model.feature_set_label} · {model.feature_count} признаков</small></div><span className="ideas-status">{model.status}</span></div><div className="ideas-model-target">{model.barrier_label}</div><div className="ideas-model-metrics"><div><span>Accuracy</span><strong>{percent(model.accuracy)}</strong><small>baseline {percent(model.baseline_accuracy)}</small></div><div><span>Brier skill</span><strong className={isPositive ? 'positive' : 'negative'}>{skill(model.mean_brier_skill)}</strong><small>{model.positive_folds}/{model.folds} positive folds</small></div><div><span>Max confidence</span><strong>{percent(model.max_confidence)}</strong><small>{model.independent_resolved ?? 0} signals ≥75%</small></div></div><div className="ideas-model-footer"><span>{model.rows?.toLocaleString('ru-RU') ?? '—'} rows</span><span>{model.trained_at ? new Date(model.trained_at).toLocaleString('ru-RU') : '—'}</span></div></article>;
 }
 
 function StateAwareTrainingPanel() {
@@ -69,6 +90,7 @@ function Overview() {
     <section className="ideas-hero"><div><p className="eyebrow">RESEARCH LAB · SHADOW ONLY</p><h1>Идеи для следующего уровня модели</h1><p>Здесь собраны направления, которые можно проверять отдельно, не заменяя стабильные модели. Главный принцип: сначала гипотеза, затем causal-признаки, walk-forward и cost-aware backtest.</p></div><span className="ideas-lab-badge">production не затрагивается</span></section>
     <section className="ideas-metrics"><Metric label="Текущая цель" value="Надёжный сигнал" /><Metric label="Главная проблема" value="Нет ≥75% edge" /><Metric label="Текущая логика" value="±1% / 24h" /><Metric label="Следующий принцип" value="Divide by state" /></section>
     <StateAwareTrainingPanel />
+    <ExperimentalModelCards />
     <div className="ideas-grid"><IdeaCard title="Разделяй по состояниям" status="рекомендуется первым" description="Сначала определять состояние рынка, затем менять калибровку или выбирать экспертную модель." bullets={['normal / trend / range / high volatility', 'отдельный shock и post-shock state', 'не создавать отдельные GRU, пока нет достаточного числа примеров']} accent="green" /><IdeaCard title="Твоя идея: модель замечает изменение мира" status="эксперимент" description="Не выдумывать конкретную новость, а обнаруживать необычный market shock по наблюдаемым данным." bullets={['abnormal return + volume + volatility jump', 'funding / OI / liquidation / DVOL shock', 'состояния normal → shock → post-shock']} accent="amber" /><IdeaCard title="Не заставлять модель торговать всегда" status="важно" description="Добавить отдельный фильтр, который может ответить «пропустить», если сигнал не подтверждён." bullets={['primary model: UP / DOWN', 'meta-model: accept / reject', 'порог зависит от состояния и исторического качества']} /></div>
     <section className="ideas-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ИСТОЧНИКИ ИДЕЙ</p><h2>Что взято из публичных GitHub-проектов</h2></div></div><div className="ideas-sources">{sources.map((source) => <a className="ideas-source" href={source.url} target="_blank" rel="noreferrer" key={source.url}><strong>{source.name}</strong><span>{source.idea}</span><small>Открыть GitHub ↗</small></a>)}</div></section>
   </>;
