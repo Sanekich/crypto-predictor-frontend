@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { MonitoringSnapshot } from '../../api/monitoring';
 import { deleteOldModel } from '../../api/operations';
+import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, type PaperOverview } from '../../api/paperTrading';
 import type { RemoteState } from '../../hooks/usePolling';
 import { formatDateTime } from '../../utils/format';
 import './monitoring.css';
@@ -17,6 +18,9 @@ function MonitoringPage({ state }: Props) {
   const [token, setToken] = useState('');
   const [deleted, setDeleted] = useState<Set<string>>(new Set());
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [paper, setPaper] = useState<PaperOverview | null>(null);
+  const [paperError, setPaperError] = useState<string | null>(null);
+  const [notional, setNotional] = useState('100');
   const snapshot = state.data;
   const live = snapshot?.live;
   const connections = Object.entries(live?.connections ?? {});
@@ -37,6 +41,14 @@ function MonitoringPage({ state }: Props) {
   const activeModels = visibleModels.filter(isLatest);
   const historyModels = visibleModels.filter((model) => !isLatest(model));
 
+  useEffect(() => {
+    let active = true;
+    const refresh = () => getPaperOverview().then((value) => { if (active) { setPaper(value); setPaperError(null); } }).catch((error: Error) => { if (active) setPaperError(error.message); });
+    refresh();
+    const timer = window.setInterval(refresh, 15000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, []);
+
   async function removeModel(modelId: string) {
     if (!token || !window.confirm('Удалить эту старую shadow-модель? Восстановить её через интерфейс нельзя.')) return;
     setDeleteError(null);
@@ -46,6 +58,21 @@ function MonitoringPage({ state }: Props) {
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : 'Не удалось удалить модель');
     }
+  }
+
+  async function openTrade(modelId: string, side: 'long' | 'short') {
+    if (!token) { setPaperError('Введи OPERATIONS_TOKEN для виртуальной сделки'); return; }
+    try { setPaper(await openPaperTrade(modelId, side, Number(notional), token)); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось открыть виртуальную позицию'); }
+  }
+
+  async function closeTrade(modelId: string) {
+    if (!token) { setPaperError('Введи OPERATIONS_TOKEN для закрытия позиции'); return; }
+    try { setPaper(await closePaperTrade(modelId, token)); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось закрыть виртуальную позицию'); }
+  }
+
+  async function resetPaper() {
+    if (!token || !window.confirm('Сбросить виртуальный баланс и историю сделок?')) return;
+    try { await resetPaperPortfolio(token); const value = await getPaperOverview(); setPaper(value); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось сбросить портфель'); }
   }
 
   return (
@@ -138,6 +165,16 @@ function MonitoringPage({ state }: Props) {
             </div>
           </section>
 
+          <section className="monitoring-panel paper-panel">
+            <div className="monitoring-panel-heading"><div><p className="eyebrow">PAPER TRADING</p><h2>Модели и виртуальный портфель</h2></div><span className="monitoring-chip ok">только виртуально</span></div>
+            <p className="monitoring-muted">Модели не отправляют ордера на биржу. Кнопки открывают симулированную LONG/SHORT-позицию по текущей цене BTCUSDT.</p>
+            <div className="paper-summary"><PaperMetric label="Equity" value={`$${paper?.equity.toFixed(2) ?? '—'}`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="Свободно" value={`$${paper?.cash.toFixed(2) ?? '—'}`} /><PaperMetric label="PnL" value={`${(paper?.return_pct ?? 0) >= 0 ? '+' : ''}${((paper?.return_pct ?? 0) * 100).toFixed(2)}%`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="BTC цена" value={paper ? `$${paper.current_price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'} /></div>
+            <div className="paper-controls"><label>Сумма<input type="number" min="10" step="10" value={notional} onChange={(event) => setNotional(event.target.value)} /></label><span>Стартовый виртуальный баланс: $10,000</span><button className="paper-reset" onClick={resetPaper}>Сбросить портфель</button></div>
+            {paperError && <p className="monitoring-error">{paperError}</p>}
+            <div className="paper-model-grid">{(paper?.models ?? []).map((model) => { const position = paper?.positions.find((item) => item.model_id === model.model_id); return <article className="paper-model-card" key={model.model_id}><div className="paper-model-head"><div><strong>{paperModelName(model.model_type)}</strong><span>{model.status} · {model.feature_set_label || model.logic}</span></div><small>{model.horizon}</small></div>{position ? <div className="paper-position"><span className={position.side}>{position.side.toUpperCase()} · ${position.notional.toFixed(0)}</span><strong className={position.unrealized_pnl >= 0 ? 'profit' : 'loss'}>{position.unrealized_pnl >= 0 ? '+' : ''}${position.unrealized_pnl.toFixed(2)}</strong><button onClick={() => closeTrade(model.model_id)}>Закрыть</button></div> : <div className="paper-actions"><button onClick={() => openTrade(model.model_id, 'long')}>LONG</button><button onClick={() => openTrade(model.model_id, 'short')}>SHORT</button></div>}</article>; })}</div>
+            {paper?.trades.length ? <details className="paper-history"><summary>Последние сделки ({paper.trades.length})</summary>{paper.trades.slice().reverse().map((trade, index) => <div className="paper-trade-row" key={`${trade.closed_at}-${index}`}><span>{paperModelName(trade.model_id.includes('meta') ? 'xgboost_meta_accept_skip' : '')}</span><span>{trade.side.toUpperCase()}</span><strong className={trade.pnl >= 0 ? 'profit' : 'loss'}>{trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}</strong></div>)}</details> : null}
+          </section>
+
           <p className="monitoring-note">Локальный режим: API должен работать на <code>http://127.0.0.1:8000</code>, а collector — отдельным процессом. Страница обновляется автоматически раз в минуту. Статус `shadow` означает, что модель наблюдается и ещё не допущена как подтверждённый сигнал.</p>
         </>
       )}
@@ -163,6 +200,18 @@ function StatusCard({ title, ok, value, detail }: { title: string; ok: boolean; 
       <small>{detail}</small>
     </article>
   );
+}
+
+function paperModelName(type: string) {
+  if (type.includes('meta')) return 'Meta ACCEPT/SKIP';
+  if (type.includes('pytorch')) return 'PyTorch GRU';
+  if (type.includes('state')) return 'State-aware barrier';
+  if (type.includes('barrier')) return 'XGBoost barrier';
+  return 'XGBoost direction';
+}
+
+function PaperMetric({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
+  return <div><span>{label}</span><strong className={positive === undefined ? '' : positive ? 'profit' : 'loss'}>{value}</strong></div>;
 }
 
 export default MonitoringPage;
