@@ -44,20 +44,21 @@ function ExperimentalModelCards() {
 }
 
 function ExperimentalModelCardView({ model }: { model: ExperimentalModelCard }) {
-  const modelName = model.model_type === 'xgboost_state_aware_barrier' ? 'State-aware barrier' : 'PyTorch GRU challenger';
+  const modelName = model.model_type === 'xgboost_state_aware_barrier' ? 'State-aware barrier' : model.model_type === 'xgboost_meta_accept_skip' ? 'Meta-model ACCEPT / SKIP' : 'PyTorch GRU challenger';
   const isPositive = (model.mean_brier_skill ?? 0) > 0;
   return <article className="ideas-model-card"><div className="ideas-model-top"><div><strong>{modelName}</strong><small>{model.feature_set_label} · {model.feature_count} признаков</small></div><span className="ideas-status">{model.status}</span></div><div className="ideas-model-target">{model.barrier_label}</div><div className="ideas-model-metrics"><div><span>Accuracy</span><strong>{percent(model.accuracy)}</strong><small>baseline {percent(model.baseline_accuracy)}</small></div><div><span>Brier skill</span><strong className={isPositive ? 'positive' : 'negative'}>{skill(model.mean_brier_skill)}</strong><small>{model.positive_folds}/{model.folds} positive folds</small></div><div><span>Max confidence</span><strong>{percent(model.max_confidence)}</strong><small>{model.independent_resolved ?? 0} signals ≥75%</small></div></div><div className="ideas-model-footer"><span>{model.rows?.toLocaleString('ru-RU') ?? '—'} rows</span><span>{model.trained_at ? new Date(model.trained_at).toLocaleString('ru-RU') : '—'}</span></div></article>;
 }
 
 function StateAwareTrainingPanel() {
   const [token, setToken] = useState('');
-  const [model, setModel] = useState<'state_candles' | 'state_all_data' | 'pytorch_candles' | 'pytorch_all_data'>('state_candles');
+  const [model, setModel] = useState<'state_candles' | 'state_all_data' | 'pytorch_candles' | 'pytorch_all_data' | 'meta_candles' | 'meta_all_data'>('state_candles');
   const [jobs, setJobs] = useState<OperationJob[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const selectedAction: OperationAction = model.startsWith('pytorch') ? 'train_pytorch' : 'train_state_barrier';
+  const selectedAction: OperationAction = model.startsWith('pytorch') ? 'train_pytorch' : model.startsWith('meta') ? 'train_meta_label' : 'train_state_barrier';
   const latest = jobs.find((job) => job.action === selectedAction);
   const isPytorch = model.startsWith('pytorch');
+  const isMeta = model.startsWith('meta');
   const selectedData = model.endsWith('all_data') ? 'all_data' : 'candles';
 
   useEffect(() => {
@@ -82,7 +83,7 @@ function StateAwareTrainingPanel() {
     }
   }
 
-  return <section className="ideas-panel ideas-training-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ЛАБОРАТОРИЯ · SHADOW</p><h2>Обучение новых моделей</h2></div><span className="ideas-status">production защищён</span></div><p className="ideas-training-copy">Выбери только экспериментальную модель. Старые XGBoost и production-артефакты не переобучаются и не заменяются.</p><div className="ideas-controls"><label>Модель<select value={model} onChange={(event) => setModel(event.target.value as typeof model)}><option value="state_candles">State-aware barrier · только свечи</option><option value="state_all_data">State-aware barrier · derivatives</option><option value="pytorch_candles">PyTorch GRU · свечи · 336h</option><option value="pytorch_all_data">PyTorch GRU · derivatives · 336h</option></select></label><label>OPERATIONS_TOKEN<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Токен backend" autoComplete="off" /></label><button className="ideas-run" disabled={!token || starting || latest?.status === 'running'} onClick={train}>{starting || latest?.status === 'running' ? 'Обучение…' : 'Обучить shadow'}</button></div><div className="ideas-selected-model"><strong>{isPytorch ? 'PyTorch GRU challenger' : 'State-aware barrier challenger'}</strong><span>{isPytorch ? 'sequence window 336h · ±1% / 24h' : 'causal state/shock features · ±1% / 24h'}</span></div>{error && <p className="ideas-error">{error}</p>}{latest && <article className="ideas-job"><div><strong>{latest.feature_set}</strong><span className={`ideas-job-status ${latest.status}`}>{latest.status}</span></div><pre>{latest.output || 'Ожидание вывода…'}</pre></article>}</section>;
+  return <section className="ideas-panel ideas-training-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ЛАБОРАТОРИЯ · SHADOW</p><h2>Обучение новых моделей</h2></div><span className="ideas-status">production защищён</span></div><p className="ideas-training-copy">Выбери только экспериментальную модель. Старые XGBoost и production-артефакты не переобучаются и не заменяются.</p><div className="ideas-controls"><label>Модель<select value={model} onChange={(event) => setModel(event.target.value as typeof model)}><option value="state_candles">State-aware barrier · только свечи</option><option value="state_all_data">State-aware barrier · derivatives</option><option value="pytorch_candles">PyTorch GRU · свечи · 336h</option><option value="pytorch_all_data">PyTorch GRU · derivatives · 336h</option><option value="meta_candles">Meta ACCEPT/SKIP · свечи</option><option value="meta_all_data">Meta ACCEPT/SKIP · derivatives</option></select></label><label>OPERATIONS_TOKEN<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Токен backend" autoComplete="off" /></label><button className="ideas-run" disabled={!token || starting || latest?.status === 'running'} onClick={train}>{starting || latest?.status === 'running' ? 'Обучение…' : 'Обучить shadow'}</button></div><div className="ideas-selected-model"><strong>{isMeta ? 'Meta-model ACCEPT / SKIP' : isPytorch ? 'PyTorch GRU challenger' : 'State-aware barrier challenger'}</strong><span>{isMeta ? 'фильтр primary-сигналов · принять или пропустить' : isPytorch ? 'sequence window 336h · ±1% / 24h' : 'causal state/shock features · ±1% / 24h'}</span></div>{error && <p className="ideas-error">{error}</p>}{latest && <article className="ideas-job"><div><strong>{latest.feature_set}</strong><span className={`ideas-job-status ${latest.status}`}>{latest.status}</span></div><pre>{latest.output || 'Ожидание вывода…'}</pre></article>}</section>;
 }
 
 function Overview() {

@@ -1,6 +1,6 @@
 import { API_URL } from './client';
 
-export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_pytorch' | 'train_state_barrier';
+export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_pytorch' | 'train_state_barrier' | 'train_meta_label';
 export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | 'pytorch_full_derivatives' | string;
 export type PytorchFeatureSet = 'candles' | 'all_data';
 
