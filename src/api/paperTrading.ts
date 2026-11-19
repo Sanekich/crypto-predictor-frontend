@@ -12,16 +12,27 @@ export interface PaperModel {
   feature_set_label: string;
   logic: string;
   paper_enabled: boolean;
+  wallet: PaperWallet;
 }
 
 export interface PaperPosition {
-  model_id: string;
   side: 'long' | 'short';
   notional: number;
   entry_price: number;
   current_price: number;
   unrealized_pnl: number;
   opened_at: string;
+}
+
+export interface PaperWallet {
+  initial_balance: number;
+  cash: number;
+  equity: number;
+  realized_pnl: number;
+  unrealized_pnl: number;
+  return_pct: number;
+  position: PaperPosition | null;
+  trades: PaperTrade[];
 }
 
 export interface PaperTrade {
@@ -43,8 +54,6 @@ export interface PaperOverview {
   unrealized_pnl: number;
   return_pct: number;
   current_price: number;
-  positions: PaperPosition[];
-  trades: PaperTrade[];
   models: PaperModel[];
   virtual_only: boolean;
 }
@@ -67,6 +76,6 @@ export function closePaperTrade(modelId: string, token: string): Promise<PaperOv
   return paperAction<PaperOverview>(`/paper-trading/close/${encodeURIComponent(modelId)}`, token);
 }
 
-export function resetPaperPortfolio(token: string): Promise<{ status: string; balance: string }> {
-  return paperAction<{ status: string; balance: string }>('/paper-trading/reset', token);
+export function resetPaperPortfolio(token: string): Promise<{ status: string; balance_per_model: string }> {
+  return paperAction<{ status: string; balance_per_model: string }>('/paper-trading/reset', token);
 }
