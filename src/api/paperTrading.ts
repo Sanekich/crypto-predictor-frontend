@@ -12,6 +12,8 @@ export interface PaperModel {
   feature_set_label: string;
   logic: string;
   paper_enabled: boolean;
+  promising: boolean;
+  promise_reason: string;
   wallet?: PaperWallet;
 }
 

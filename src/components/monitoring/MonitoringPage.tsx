@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { MonitoringSnapshot } from '../../api/monitoring';
 import { deleteOldModel } from '../../api/operations';
-import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, type PaperOverview, type PaperWallet } from '../../api/paperTrading';
+import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, type PaperModel, type PaperOverview, type PaperWallet } from '../../api/paperTrading';
 import type { RemoteState } from '../../hooks/usePolling';
 import { formatDateTime } from '../../utils/format';
 import './monitoring.css';
@@ -171,7 +171,13 @@ function MonitoringPage({ state }: Props) {
             <div className="paper-summary"><PaperMetric label="Общий equity" value={`$${paper?.equity.toFixed(2) ?? '—'}`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="Свободно" value={`$${paper?.cash.toFixed(2) ?? '—'}`} /><PaperMetric label="Общий PnL" value={`${(paper?.return_pct ?? 0) >= 0 ? '+' : ''}${((paper?.return_pct ?? 0) * 100).toFixed(2)}%`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="BTC цена" value={paper ? `$${paper.current_price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'} /></div>
             <div className="paper-controls"><label>Сумма на кошелёк<input type="number" min="10" step="10" value={notional} onChange={(event) => setNotional(event.target.value)} /></label><span>У каждой модели свой стартовый кошелёк: $10,000</span><button className="paper-reset" onClick={resetPaper}>Сбросить все кошельки</button></div>
             {paperError && <p className="monitoring-error">{paperError}</p>}
-            <div className="paper-model-grid">{(paper?.models ?? []).map((model) => { const wallet = model.wallet ?? (paper ? legacyWallet(paper, model.model_id) : emptyWallet()); const position = wallet.position; return <article className={`paper-model-card ${paperModelClass(model.model_type)}`} key={model.model_id}><div className="paper-model-head"><div><strong>{paperModelName(model.model_type)}</strong><span>{model.status} · {model.feature_set_label || model.logic}</span></div><small>{model.horizon}</small></div><div className="paper-wallet-stats"><div><span>Equity</span><strong>${wallet.equity.toFixed(2)}</strong></div><div><span>PnL</span><strong className={wallet.return_pct >= 0 ? 'profit' : 'loss'}>{wallet.return_pct >= 0 ? '+' : ''}{(wallet.return_pct * 100).toFixed(2)}%</strong></div><div><span>Свободно</span><strong>${wallet.cash.toFixed(0)}</strong></div></div>{position ? <div className="paper-position"><span className={position.side}>{position.side.toUpperCase()} · ${position.notional.toFixed(0)}</span><strong className={position.unrealized_pnl >= 0 ? 'profit' : 'loss'}>{position.unrealized_pnl >= 0 ? '+' : ''}${position.unrealized_pnl.toFixed(2)}</strong><button onClick={() => closeTrade(model.model_id)}>Закрыть</button></div> : <div className="paper-actions"><button onClick={() => openTrade(model.model_id, 'long')}>LONG</button><button onClick={() => openTrade(model.model_id, 'short')}>SHORT</button></div>}</article>; })}</div>
+            {([
+              { key: 'promising', title: 'Самые многообещающие', subtitle: 'Есть положительные признаки по walk-forward или approved-статус' },
+              { key: 'observe', title: 'Остальные для наблюдения', subtitle: 'Пока нет устойчивого преимущества; не удаляем и продолжаем проверять' },
+            ] as const).map((group) => {
+              const models = (paper?.models ?? []).filter((model) => group.key === 'promising' ? model.promising : !model.promising);
+              return models.length ? <section className={`paper-model-group ${group.key}`} key={group.key}><div className="paper-group-heading"><div><h3>{group.title}</h3><span>{group.subtitle}</span></div><b>{models.length}</b></div><div className="paper-model-grid">{models.map((model) => <PaperModelCard key={model.model_id} model={model} paper={paper} openTrade={openTrade} closeTrade={closeTrade} />)}</div></section> : null;
+            })}
             {(paper?.models.some((model) => (model.wallet ?? legacyWallet(paper, model.model_id)).trades.length > 0)) ? <details className="paper-history"><summary>История сделок по кошелькам</summary>{paper.models.flatMap((model) => (model.wallet ?? legacyWallet(paper, model.model_id)).trades.slice().reverse().map((trade, index) => <div className="paper-trade-row" key={`${trade.closed_at}-${index}`}><span>{paperModelName(model.model_type)}</span><span>{trade.side.toUpperCase()}</span><strong className={trade.pnl >= 0 ? 'profit' : 'loss'}>{trade.pnl >= 0 ? '+' : ''}${trade.pnl.toFixed(2)}</strong></div>))}</details> : null}
           </section>
 
@@ -226,6 +232,12 @@ function paperModelClass(type: string) {
   if (type.includes('state')) return 'state-wallet';
   if (type.includes('barrier')) return 'barrier-wallet';
   return 'direction-wallet';
+}
+
+function PaperModelCard({ model, paper, openTrade, closeTrade }: { model: PaperModel; paper: PaperOverview | null; openTrade: (modelId: string, side: 'long' | 'short') => Promise<void>; closeTrade: (modelId: string) => Promise<void> }) {
+  const wallet = model.wallet ?? (paper ? legacyWallet(paper, model.model_id) : emptyWallet());
+  const position = wallet.position;
+  return <article className={`paper-model-card ${paperModelClass(model.model_type)}`}><div className="paper-model-head"><div><strong>{paperModelName(model.model_type)}</strong><span>{model.status} · {model.feature_set_label || model.logic}</span></div><small>{model.horizon}</small></div><p className="paper-promise">{model.promise_reason || 'статус пока не определён'}</p><div className="paper-wallet-stats"><div><span>Equity</span><strong>${wallet.equity.toFixed(2)}</strong></div><div><span>PnL</span><strong className={wallet.return_pct >= 0 ? 'profit' : 'loss'}>{wallet.return_pct >= 0 ? '+' : ''}{(wallet.return_pct * 100).toFixed(2)}%</strong></div><div><span>Свободно</span><strong>${wallet.cash.toFixed(0)}</strong></div></div>{position ? <div className="paper-position"><span className={position.side}>{position.side.toUpperCase()} · ${position.notional.toFixed(0)}</span><strong className={position.unrealized_pnl >= 0 ? 'profit' : 'loss'}>{position.unrealized_pnl >= 0 ? '+' : ''}${position.unrealized_pnl.toFixed(2)}</strong><button onClick={() => closeTrade(model.model_id)}>Закрыть</button></div> : <div className="paper-actions"><button onClick={() => openTrade(model.model_id, 'long')}>LONG</button><button onClick={() => openTrade(model.model_id, 'short')}>SHORT</button></div>}</article>;
 }
 
 function PaperMetric({ label, value, positive }: { label: string; value: string; positive?: boolean }) {
