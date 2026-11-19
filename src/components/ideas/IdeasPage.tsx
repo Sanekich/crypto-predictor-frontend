@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOperationStatus, startOperation, type OperationJob } from '../../api/operations';
+import { getOperationStatus, startOperation, type OperationAction, type OperationJob } from '../../api/operations';
 import './ideas.css';
 
 type IdeaTab = 'overview' | 'regimes' | 'events' | 'news' | 'barriers' | 'meta';
@@ -30,11 +30,14 @@ function IdeaCard({ title, status, description, bullets, accent = '' }: { title:
 
 function StateAwareTrainingPanel() {
   const [token, setToken] = useState('');
-  const [featureSet, setFeatureSet] = useState<'candles' | 'all_data'>('candles');
+  const [model, setModel] = useState<'state_candles' | 'state_all_data' | 'pytorch_candles' | 'pytorch_all_data'>('state_candles');
   const [jobs, setJobs] = useState<OperationJob[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const latest = jobs.find((job) => job.action === 'train_state_barrier');
+  const selectedAction: OperationAction = model.startsWith('pytorch') ? 'train_pytorch' : 'train_state_barrier';
+  const latest = jobs.find((job) => job.action === selectedAction);
+  const isPytorch = model.startsWith('pytorch');
+  const selectedData = model.endsWith('all_data') ? 'all_data' : 'candles';
 
   useEffect(() => {
     if (!token) return;
@@ -49,7 +52,7 @@ function StateAwareTrainingPanel() {
     setError(null);
     setStarting(true);
     try {
-      const job = await startOperation('train_state_barrier', '24h', token, 'v1', 'all_data', 336, featureSet);
+      const job = await startOperation(selectedAction, '24h', token, 'v1', selectedData, 336, selectedData);
       setJobs((current) => [job, ...current.filter((item) => item.job_id !== job.job_id)]);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось запустить state-aware обучение');
@@ -58,7 +61,7 @@ function StateAwareTrainingPanel() {
     }
   }
 
-  return <section className="ideas-panel ideas-training-panel"><div className="ideas-panel-title"><div><p className="eyebrow">НОВЫЙ SHADOW-ЭКСПЕРИМЕНТ</p><h2>State-aware barrier trainer</h2></div><span className="ideas-status">старые модели не меняются</span></div><p className="ideas-training-copy">Обучает отдельную модель на ±1% / 24h с causal state/shock-признаками. Результат сохраняется отдельно в <code>artifacts/experiments</code>.</p><div className="ideas-controls"><label>OPERATIONS_TOKEN<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Токен backend" autoComplete="off" /></label><label>Данные<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as 'candles' | 'all_data')}><option value="candles">только свечи</option><option value="all_data">свечи + derivatives</option></select></label><button className="ideas-run" disabled={!token || starting || latest?.status === 'running'} onClick={train}>{starting || latest?.status === 'running' ? 'Обучение…' : 'Обучить shadow'}</button></div>{error && <p className="ideas-error">{error}</p>}{latest && <article className="ideas-job"><div><strong>{latest.feature_set}</strong><span className={`ideas-job-status ${latest.status}`}>{latest.status}</span></div><pre>{latest.output || 'Ожидание вывода…'}</pre></article>}</section>;
+  return <section className="ideas-panel ideas-training-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ЛАБОРАТОРИЯ · SHADOW</p><h2>Обучение новых моделей</h2></div><span className="ideas-status">production защищён</span></div><p className="ideas-training-copy">Выбери только экспериментальную модель. Старые XGBoost и production-артефакты не переобучаются и не заменяются.</p><div className="ideas-controls"><label>Модель<select value={model} onChange={(event) => setModel(event.target.value as typeof model)}><option value="state_candles">State-aware barrier · только свечи</option><option value="state_all_data">State-aware barrier · derivatives</option><option value="pytorch_candles">PyTorch GRU · свечи · 336h</option><option value="pytorch_all_data">PyTorch GRU · derivatives · 336h</option></select></label><label>OPERATIONS_TOKEN<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Токен backend" autoComplete="off" /></label><button className="ideas-run" disabled={!token || starting || latest?.status === 'running'} onClick={train}>{starting || latest?.status === 'running' ? 'Обучение…' : 'Обучить shadow'}</button></div><div className="ideas-selected-model"><strong>{isPytorch ? 'PyTorch GRU challenger' : 'State-aware barrier challenger'}</strong><span>{isPytorch ? 'sequence window 336h · ±1% / 24h' : 'causal state/shock features · ±1% / 24h'}</span></div>{error && <p className="ideas-error">{error}</p>}{latest && <article className="ideas-job"><div><strong>{latest.feature_set}</strong><span className={`ideas-job-status ${latest.status}`}>{latest.status}</span></div><pre>{latest.output || 'Ожидание вывода…'}</pre></article>}</section>;
 }
 
 function Overview() {
