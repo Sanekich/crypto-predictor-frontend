@@ -5,6 +5,7 @@ import TestsPage from './components/tests/TestsPage'
 import BarrierPage from './components/barrier/BarrierPage'
 import PyTorchPage from './components/pytorch/PyTorchPage'
 import IdeasPage from './components/ideas/IdeasPage'
+import LabPage from './components/lab/LabPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
 import SignalsPage from './components/signals/SignalsPage'
@@ -41,10 +42,7 @@ function App() {
           <a href={routeHref.overview} className={route === 'overview' ? 'active' : ''}>Обзор</a>
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
-          <a href={routeHref.tests} className={route === 'tests' ? 'active' : ''}>Тесты</a>
-          <a href={routeHref.barrier} className={route === 'barrier' ? 'active' : ''} style={{color:"green",fontWeight:"bold"}}>Новая логика</a>
-          <a href={routeHref.pytorch} className={route === 'pytorch' ? 'active' : ''}>Эксперимент</a>
-          <a href={routeHref.ideas} className={route === 'ideas' ? 'active' : ''}>Идеи</a>
+          <a href={routeHref.lab} className={route === 'lab' || route === 'tests' || route === 'barrier' || route === 'pytorch' || route === 'ideas' ? 'active' : ''}>Лаборатория</a>
         </nav>
 
         <div className="topbar-note">
@@ -57,6 +55,8 @@ function App() {
         <SignalsPage state={signals} />
       ) : route === 'monitoring' ? (
         <MonitoringPage state={monitoring} />
+      ) : route === 'lab' ? (
+        <LabPage />
       ) : route === 'tests' ? (
         <TestsPage />
       ) : route === 'barrier' ? (
