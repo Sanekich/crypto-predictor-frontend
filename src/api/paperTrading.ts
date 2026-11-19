@@ -12,10 +12,11 @@ export interface PaperModel {
   feature_set_label: string;
   logic: string;
   paper_enabled: boolean;
-  wallet: PaperWallet;
+  wallet?: PaperWallet;
 }
 
 export interface PaperPosition {
+  model_id?: string;
   side: 'long' | 'short';
   notional: number;
   entry_price: number;
@@ -54,6 +55,8 @@ export interface PaperOverview {
   unrealized_pnl: number;
   return_pct: number;
   current_price: number;
+  positions?: PaperPosition[];
+  trades?: PaperTrade[];
   models: PaperModel[];
   virtual_only: boolean;
 }
