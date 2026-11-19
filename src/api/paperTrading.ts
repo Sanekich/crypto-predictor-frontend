@@ -1,5 +1,4 @@
 import { API_URL, getJsonForMonitoring } from './client';
-import { tokenHeader } from './operations';
 
 export interface PaperModel {
   model_id: string;
@@ -60,27 +59,34 @@ export interface PaperOverview {
   positions?: PaperPosition[];
   trades?: PaperTrade[];
   models: PaperModel[];
+  controller: PaperController;
   virtual_only: boolean;
 }
+
+export interface PaperController { enabled: boolean; last_tick: string | null; last_action: string; threshold: number; }
 
 export function getPaperOverview(signal?: AbortSignal): Promise<PaperOverview> {
   return getJsonForMonitoring<PaperOverview>('/paper-trading/overview', signal);
 }
 
-async function paperAction<T>(path: string, token: string, body?: unknown): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json', ...tokenHeader(token) }, body: body ? JSON.stringify(body) : undefined });
+async function paperAction<T>(path: string, body?: unknown): Promise<T> {
+  const response = await fetch(`${API_URL}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
   if (!response.ok) throw new Error((await response.text()) || `Paper trading failed (${response.status})`);
   return response.json() as Promise<T>;
 }
 
-export function openPaperTrade(modelId: string, side: 'long' | 'short', notional: number, token: string): Promise<PaperOverview> {
-  return paperAction<PaperOverview>('/paper-trading/trade', token, { model_id: modelId, side, notional });
+export function openPaperTrade(modelId: string, side: 'long' | 'short', notional: number): Promise<PaperOverview> {
+  return paperAction<PaperOverview>('/paper-trading/trade', { model_id: modelId, side, notional });
 }
 
-export function closePaperTrade(modelId: string, token: string): Promise<PaperOverview> {
-  return paperAction<PaperOverview>(`/paper-trading/close/${encodeURIComponent(modelId)}`, token);
+export function closePaperTrade(modelId: string): Promise<PaperOverview> {
+  return paperAction<PaperOverview>(`/paper-trading/close/${encodeURIComponent(modelId)}`);
 }
 
-export function resetPaperPortfolio(token: string): Promise<{ status: string; balance_per_model: string }> {
-  return paperAction<{ status: string; balance_per_model: string }>('/paper-trading/reset', token);
+export function resetPaperPortfolio(): Promise<{ status: string; balance_per_model: string }> {
+  return paperAction<{ status: string; balance_per_model: string }>('/paper-trading/reset');
+}
+
+export function setPaperController(enabled: boolean): Promise<PaperController> {
+  return paperAction<PaperController>('/paper-trading/controller', { enabled });
 }

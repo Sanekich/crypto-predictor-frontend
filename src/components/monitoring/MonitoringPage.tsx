@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { MonitoringSnapshot } from '../../api/monitoring';
 import { deleteOldModel } from '../../api/operations';
-import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, type PaperModel, type PaperOverview, type PaperWallet } from '../../api/paperTrading';
+import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, setPaperController, type PaperModel, type PaperOverview, type PaperWallet } from '../../api/paperTrading';
 import type { RemoteState } from '../../hooks/usePolling';
 import { formatDateTime } from '../../utils/format';
 import './monitoring.css';
@@ -61,18 +61,20 @@ function MonitoringPage({ state }: Props) {
   }
 
   async function openTrade(modelId: string, side: 'long' | 'short') {
-    if (!token) { setPaperError('Введи OPERATIONS_TOKEN для виртуальной сделки'); return; }
-    try { setPaper(await openPaperTrade(modelId, side, Number(notional), token)); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось открыть виртуальную позицию'); }
+    try { setPaper(await openPaperTrade(modelId, side, Number(notional))); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось открыть виртуальную позицию'); }
   }
 
   async function closeTrade(modelId: string) {
-    if (!token) { setPaperError('Введи OPERATIONS_TOKEN для закрытия позиции'); return; }
-    try { setPaper(await closePaperTrade(modelId, token)); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось закрыть виртуальную позицию'); }
+    try { setPaper(await closePaperTrade(modelId)); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось закрыть виртуальную позицию'); }
   }
 
   async function resetPaper() {
-    if (!token || !window.confirm('Сбросить виртуальный баланс и историю сделок?')) return;
-    try { await resetPaperPortfolio(token); const value = await getPaperOverview(); setPaper(value); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось сбросить портфель'); }
+    if (!window.confirm('Сбросить виртуальные кошельки и историю сделок?')) return;
+    try { await resetPaperPortfolio(); const value = await getPaperOverview(); setPaper(value); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось сбросить портфель'); }
+  }
+
+  async function toggleController() {
+    try { const controller = await setPaperController(!paper?.controller?.enabled); setPaper((current) => current ? { ...current, controller } : current); setPaperError(null); } catch (error) { setPaperError(error instanceof Error ? error.message : 'Не удалось изменить controller'); }
   }
 
   return (
@@ -168,6 +170,7 @@ function MonitoringPage({ state }: Props) {
           <section className="monitoring-panel paper-panel">
             <div className="monitoring-panel-heading"><div><p className="eyebrow">PAPER TRADING</p><h2>Модели и виртуальный портфель</h2></div><span className="monitoring-chip ok">только виртуально</span></div>
             <p className="monitoring-muted">Модели не отправляют ордера на биржу. Кнопки открывают симулированную LONG/SHORT-позицию по текущей цене BTCUSDT.</p>
+            <div className="paper-controller"><div><strong>Автоматический controller</strong><span>{paper?.controller?.enabled ? `Включён · ${paper.controller.last_action}` : 'Выключен · модели не принимают сделки автоматически'}</span></div><button className={paper?.controller?.enabled ? 'enabled' : ''} onClick={toggleController}>{paper?.controller?.enabled ? 'Выключить' : 'Включить controller'}</button></div>
             <div className="paper-summary"><PaperMetric label="Общий equity" value={`$${paper?.equity.toFixed(2) ?? '—'}`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="Свободно" value={`$${paper?.cash.toFixed(2) ?? '—'}`} /><PaperMetric label="Общий PnL" value={`${(paper?.return_pct ?? 0) >= 0 ? '+' : ''}${((paper?.return_pct ?? 0) * 100).toFixed(2)}%`} positive={(paper?.return_pct ?? 0) >= 0} /><PaperMetric label="BTC цена" value={paper ? `$${paper.current_price.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : '—'} /></div>
             <div className="paper-controls"><label>Сумма на кошелёк<input type="number" min="10" step="10" value={notional} onChange={(event) => setNotional(event.target.value)} /></label><span>У каждой модели свой стартовый кошелёк: $10,000</span><button className="paper-reset" onClick={resetPaper}>Сбросить все кошельки</button></div>
             {paperError && <p className="monitoring-error">{paperError}</p>}
