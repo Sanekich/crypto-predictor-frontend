@@ -13,8 +13,11 @@ export interface PaperModel {
   paper_enabled: boolean;
   promising: boolean;
   promise_reason: string;
+  forecast?: PaperForecast | null;
   wallet?: PaperWallet;
 }
+
+export interface PaperForecast { horizon: string; direction: 'up' | 'down'; p_up: number; confidence: number; is_signal: boolean; has_skill: boolean; target_time: string; status: string; }
 
 export interface PaperPosition {
   model_id?: string;
