@@ -4,6 +4,7 @@ import MonitoringPage from './components/monitoring/MonitoringPage'
 import TestsPage from './components/tests/TestsPage'
 import BarrierPage from './components/barrier/BarrierPage'
 import PyTorchPage from './components/pytorch/PyTorchPage'
+import IdeasPage from './components/ideas/IdeasPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
 import SignalsPage from './components/signals/SignalsPage'
@@ -43,6 +44,7 @@ function App() {
           <a href={routeHref.tests} className={route === 'tests' ? 'active' : ''}>Тесты</a>
           <a href={routeHref.barrier} className={route === 'barrier' ? 'active' : ''} style={{color:"green",fontWeight:"bold"}}>Новая логика</a>
           <a href={routeHref.pytorch} className={route === 'pytorch' ? 'active' : ''}>Эксперимент</a>
+          <a href={routeHref.ideas} className={route === 'ideas' ? 'active' : ''}>Идеи</a>
         </nav>
 
         <div className="topbar-note">
@@ -61,6 +63,8 @@ function App() {
         <BarrierPage />
       ) : route === 'pytorch' ? (
         <PyTorchPage />
+      ) : route === 'ideas' ? (
+        <IdeasPage />
       ) : (
         <>
           <section className="intro">

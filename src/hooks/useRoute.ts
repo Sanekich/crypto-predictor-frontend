@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type Route = 'overview' | 'signals' | 'monitoring' | 'tests' | 'barrier' | 'pytorch';
+export type Route = 'overview' | 'signals' | 'monitoring' | 'tests' | 'barrier' | 'pytorch' | 'ideas';
 
 // Hash-based routing: works on any static hosting (Render static site) without server rewrites.
 function read(): Route {
@@ -9,6 +9,7 @@ function read(): Route {
   if (window.location.hash.startsWith('#/tests')) return 'tests';
   if (window.location.hash.startsWith('#/barrier')) return 'barrier';
   if (window.location.hash.startsWith('#/pytorch')) return 'pytorch';
+  if (window.location.hash.startsWith('#/ideas')) return 'ideas';
   return 'overview';
 }
 
@@ -28,4 +29,5 @@ export const routeHref: Record<Route, string> = {
   tests: '#/tests',
   barrier: '#/barrier',
   pytorch: '#/pytorch',
+  ideas: '#/ideas',
 };
