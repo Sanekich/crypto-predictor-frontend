@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { getOperationStatus, startOperation, type OperationJob } from '../../api/operations';
 import './ideas.css';
 
 type IdeaTab = 'overview' | 'regimes' | 'events' | 'news' | 'barriers' | 'meta';
@@ -27,12 +28,45 @@ function IdeaCard({ title, status, description, bullets, accent = '' }: { title:
   return <article className={`ideas-card ${accent}`}><div className="ideas-card-head"><h3>{title}</h3><span className="ideas-status">{status}</span></div><p>{description}</p><ul>{bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul></article>;
 }
 
+function StateAwareTrainingPanel() {
+  const [token, setToken] = useState('');
+  const [featureSet, setFeatureSet] = useState<'candles' | 'all_data'>('candles');
+  const [jobs, setJobs] = useState<OperationJob[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [starting, setStarting] = useState(false);
+  const latest = jobs.find((job) => job.action === 'train_state_barrier');
+
+  useEffect(() => {
+    if (!token) return;
+    let active = true;
+    const refresh = () => getOperationStatus(token).then((items) => { if (active) setJobs(items); }).catch((err: Error) => { if (active) setError(err.message); });
+    refresh();
+    const timer = window.setInterval(refresh, 5000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [token]);
+
+  async function train() {
+    setError(null);
+    setStarting(true);
+    try {
+      const job = await startOperation('train_state_barrier', '24h', token, 'v1', 'all_data', 336, featureSet);
+      setJobs((current) => [job, ...current.filter((item) => item.job_id !== job.job_id)]);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Не удалось запустить state-aware обучение');
+    } finally {
+      setStarting(false);
+    }
+  }
+
+  return <section className="ideas-panel ideas-training-panel"><div className="ideas-panel-title"><div><p className="eyebrow">НОВЫЙ SHADOW-ЭКСПЕРИМЕНТ</p><h2>State-aware barrier trainer</h2></div><span className="ideas-status">старые модели не меняются</span></div><p className="ideas-training-copy">Обучает отдельную модель на ±1% / 24h с causal state/shock-признаками. Результат сохраняется отдельно в <code>artifacts/experiments</code>.</p><div className="ideas-controls"><label>OPERATIONS_TOKEN<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="Токен backend" autoComplete="off" /></label><label>Данные<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as 'candles' | 'all_data')}><option value="candles">только свечи</option><option value="all_data">свечи + derivatives</option></select></label><button className="ideas-run" disabled={!token || starting || latest?.status === 'running'} onClick={train}>{starting || latest?.status === 'running' ? 'Обучение…' : 'Обучить shadow'}</button></div>{error && <p className="ideas-error">{error}</p>}{latest && <article className="ideas-job"><div><strong>{latest.feature_set}</strong><span className={`ideas-job-status ${latest.status}`}>{latest.status}</span></div><pre>{latest.output || 'Ожидание вывода…'}</pre></article>}</section>;
+}
+
 function Overview() {
   return <>
     <section className="ideas-hero"><div><p className="eyebrow">RESEARCH LAB · SHADOW ONLY</p><h1>Идеи для следующего уровня модели</h1><p>Здесь собраны направления, которые можно проверять отдельно, не заменяя стабильные модели. Главный принцип: сначала гипотеза, затем causal-признаки, walk-forward и cost-aware backtest.</p></div><span className="ideas-lab-badge">production не затрагивается</span></section>
     <section className="ideas-metrics"><Metric label="Текущая цель" value="Надёжный сигнал" /><Metric label="Главная проблема" value="Нет ≥75% edge" /><Metric label="Текущая логика" value="±1% / 24h" /><Metric label="Следующий принцип" value="Divide by state" /></section>
     <div className="ideas-grid"><IdeaCard title="Разделяй по состояниям" status="рекомендуется первым" description="Сначала определять состояние рынка, затем менять калибровку или выбирать экспертную модель." bullets={['normal / trend / range / high volatility', 'отдельный shock и post-shock state', 'не создавать отдельные GRU, пока нет достаточного числа примеров']} accent="green" /><IdeaCard title="Твоя идея: модель замечает изменение мира" status="эксперимент" description="Не выдумывать конкретную новость, а обнаруживать необычный market shock по наблюдаемым данным." bullets={['abnormal return + volume + volatility jump', 'funding / OI / liquidation / DVOL shock', 'состояния normal → shock → post-shock']} accent="amber" /><IdeaCard title="Не заставлять модель торговать всегда" status="важно" description="Добавить отдельный фильтр, который может ответить «пропустить», если сигнал не подтверждён." bullets={['primary model: UP / DOWN', 'meta-model: accept / reject', 'порог зависит от состояния и исторического качества']} /></div>
-    <section className="ideas-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ИСТОЧНИКИ ИДЕЙ</p><h2>Что взято из публичных GitHub-проектов</h2></div></div><div className="ideas-sources">{sources.map((source) => <a className="ideas-source" href={source.url} target="_blank" rel="noreferrer" key={source.url}><strong>{source.name}</strong><span>{source.idea}</span><small>Открыть GitHub ↗</small></a>)}</div></section>
+    <StateAwareTrainingPanel /><section className="ideas-panel"><div className="ideas-panel-title"><div><p className="eyebrow">ИСТОЧНИКИ ИДЕЙ</p><h2>Что взято из публичных GitHub-проектов</h2></div></div><div className="ideas-sources">{sources.map((source) => <a className="ideas-source" href={source.url} target="_blank" rel="noreferrer" key={source.url}><strong>{source.name}</strong><span>{source.idea}</span><small>Открыть GitHub ↗</small></a>)}</div></section>
   </>;
 }
 
