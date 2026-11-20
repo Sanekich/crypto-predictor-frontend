@@ -32,14 +32,14 @@ export async function getOperationStatus(token: string, signal?: AbortSignal): P
   return response.json() as Promise<OperationJob[]>;
 }
 
-export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1', pytorchFeatureSet: PytorchFeatureSet = 'all_data', pytorchSequenceLength: 168 | 336 = 336, barrierFeatureSet: 'candles' | 'all_data' | 'all' = 'all'): Promise<OperationJob> {
+export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1', pytorchFeatureSet: PytorchFeatureSet = 'all_data', pytorchSequenceLength: 168 | 336 = 336, barrierFeatureSet: 'candles' | 'all_data' | 'all' = 'all', startDate?: string, excludeRecentDays = 0): Promise<OperationJob> {
   const bytes = new TextEncoder().encode(token);
   let binary = '';
   bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
   const response = await fetch(`${API_URL}/operations/run`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'X-Operations-Token-B64': btoa(binary) },
-    body: JSON.stringify({ action, horizon, feature_set: featureSet, barrier_feature_set: barrierFeatureSet, pytorch_feature_set: pytorchFeatureSet, pytorch_sequence_length: pytorchSequenceLength }),
+    body: JSON.stringify({ action, horizon, feature_set: featureSet, barrier_feature_set: barrierFeatureSet, pytorch_feature_set: pytorchFeatureSet, pytorch_sequence_length: pytorchSequenceLength, start_date: startDate || null, exclude_recent_days: excludeRecentDays }),
   });
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
   return response.json() as Promise<OperationJob>;

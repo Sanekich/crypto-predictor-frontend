@@ -13,6 +13,8 @@ function TestsPage() {
   const [token, setToken] = useState('');
   const [horizon, setHorizon] = useState<'24h' | '7d'>('24h');
   const [featureSet, setFeatureSet] = useState<FeatureSet>('v1');
+  const [startDate, setStartDate] = useState('2024-01-01');
+  const [excludeRecentDays, setExcludeRecentDays] = useState(5);
   const [jobs, setJobs] = useState<OperationJob[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,7 +33,7 @@ function TestsPage() {
   async function run(action: OperationAction) {
     setError(null);
     try {
-      await startOperation(action, horizon, token, featureSet);
+      await startOperation(action, horizon, token, featureSet, 'all_data', 336, 'all', action === 'train_direction' ? startDate : undefined, action === 'train_direction' ? excludeRecentDays : 0);
       refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось запустить операцию');
@@ -51,8 +53,9 @@ function TestsPage() {
         <label className="tests-field">Токен операций<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
         <div className="tests-horizons"><span>Горизонт</span><button className={horizon === '24h' ? 'active' : ''} onClick={() => setHorizon('24h')}>24 часа</button><button className={horizon === '7d' ? 'active' : ''} onClick={() => setHorizon('7d')}>7 дней</button></div>
         <label className="tests-field tests-select-field">Набор признаков<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as FeatureSet)}><option value="v1">v1 — OHLCV (baseline)</option><option value="v2_funding_basis">v2 — OHLCV + funding + basis</option><option value="v3_open_interest">v3 — + open interest</option></select></label>
+        <div className="tests-date-window"><div><span className="tests-control-label">Окно обучения direction</span><small>Применяется только к новой direction-модели.</small></div><label className="tests-field">Начать с<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><label className="tests-field">Исключить последние дни<input type="number" min="0" max="3650" value={excludeRecentDays} onChange={(event) => setExcludeRecentDays(Math.max(0, Number(event.target.value) || 0))} /></label></div>
         <div className="tests-action-grid">{actions.map((item) => <button className="tests-action" key={item.action} onClick={() => run(item.action)} disabled={running || !token}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>
-        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Обучение всегда сохраняется только как shadow. Для v2 нужны funding и premium/basis, для v3 дополнительно metrics/open interest в <code>data/derivatives</code>. Одновременно разрешена только одна операция.</p>
+        <p className="tests-note">Токен не сохраняется в браузере. Backend должен иметь переменную <code>OPERATIONS_TOKEN</code>. Для direction по умолчанию: с 2024-01-01 и без последних 5 дней. Это не удаляет данные и не меняет production-артефакты. Для v2 нужны funding и premium/basis, для v3 дополнительно metrics/open interest в <code>data/derivatives</code>. Одновременно разрешена только одна операция.</p>
         {error && <p className="tests-error">{error}</p>}
       </section>
 

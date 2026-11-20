@@ -27,6 +27,10 @@
 .tests-note,.tests-muted { color:#89968f; font-size:10px; line-height:1.5; }
 .tests-note { margin:13px 0 0; }
 .tests-note code { color:#4b7363; }
+.tests-date-window { display:grid; grid-template-columns:minmax(180px,1fr) repeat(2,minmax(150px,.6fr)); gap:12px; align-items:end; margin:14px 0; padding:14px; border:1px solid #e5e9ef; border-radius:12px; background:#fafbfd; }
+.tests-date-window > div:first-child { display:grid; gap:4px; }
+.tests-control-label { color:#263342; font-size:13px; font-weight:700; }
+.tests-date-window small { color:#7a8795; font-size:12px; line-height:1.35; }
 .tests-error { color:#b45b50; font-size:10px; }
 .tests-job { padding:12px 0; border-top:1px solid #eff2f0; }
 .tests-job-top { display:flex; align-items:center; justify-content:space-between; gap:12px; }
@@ -35,4 +39,5 @@
 .tests-job-top span:not(.tests-chip) { color:#89968f; font-size:9px; }
 .tests-job pre { max-height:220px; overflow:auto; margin:10px 0 0; padding:10px; border-radius:7px; background:#f7faf8; color:#63736b; font:10px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; white-space:pre-wrap; }
 @media (max-width:720px) { .tests-action-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:760px) { .tests-date-window { grid-template-columns:1fr; } }
 @media (max-width:520px) { .tests-page { padding-top:28px; } .tests-hero { align-items:flex-start; flex-direction:column; } .tests-panel { padding:17px 15px; } .tests-field { align-items:flex-start; flex-direction:column; gap:7px; } .tests-field input { width:100%; max-width:none; } .tests-job-top div { align-items:flex-start; flex-direction:column; gap:3px; } }
