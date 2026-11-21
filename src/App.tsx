@@ -1,6 +1,7 @@
 import './App.css'
 import Graph from './components/graph/graph'
 import MonitoringPage from './components/monitoring/MonitoringPage'
+import HistoryPage from './components/history/HistoryPage'
 import TestsPage from './components/tests/TestsPage'
 import BarrierPage from './components/barrier/BarrierPage'
 import PyTorchPage from './components/pytorch/PyTorchPage'
@@ -42,6 +43,7 @@ function App() {
           <a href={routeHref.overview} className={route === 'overview' ? 'active' : ''}>Обзор</a>
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
+          <a href={routeHref.history} className={route === 'history' ? 'active' : ''}>История</a>
           <a href={routeHref.lab} className={route === 'lab' || route === 'tests' || route === 'barrier' || route === 'pytorch' || route === 'ideas' ? 'active' : ''}>Лаборатория</a>
         </nav>
 
@@ -55,6 +57,8 @@ function App() {
         <SignalsPage state={signals} />
       ) : route === 'monitoring' ? (
         <MonitoringPage state={monitoring} />
+      ) : route === 'history' ? (
+        <HistoryPage />
       ) : route === 'lab' ? (
         <LabPage />
       ) : route === 'tests' ? (

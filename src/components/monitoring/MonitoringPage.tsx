@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { MonitoringSnapshot } from '../../api/monitoring';
-import { deleteOldModel } from '../../api/operations';
+import { archiveModel } from '../../api/modelHistory';
 import { closePaperTrade, getPaperOverview, openPaperTrade, resetPaperPortfolio, setPaperController, type PaperModel, type PaperOverview, type PaperWallet } from '../../api/paperTrading';
 import type { RemoteState } from '../../hooks/usePolling';
 import { formatDateTime } from '../../utils/format';
@@ -50,10 +50,14 @@ function MonitoringPage({ state }: Props) {
   }, []);
 
   async function removeModel(modelId: string) {
-    if (!token || !window.confirm('Удалить эту старую shadow-модель? Восстановить её через интерфейс нельзя.')) return;
+    if (!token) return;
+    const reason = window.prompt('Почему убрать эту старую shadow-модель в архив?');
+    if (!reason?.trim()) return;
     setDeleteError(null);
     try {
-      await deleteOldModel(modelId, token);
+      const model = visibleModels.find((item) => item.model_id === modelId);
+      if (!model) return;
+      await archiveModel(modelId, modelSource(model.model_type), reason, token);
       setDeleted((current) => new Set(current).add(modelId));
     } catch (error) {
       setDeleteError(error instanceof Error ? error.message : 'Не удалось удалить модель');
@@ -155,7 +159,7 @@ function MonitoringPage({ state }: Props) {
             <div className="model-list">
               <div className="registry-controls">
                 <label>Токен операций<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
-                <span>Удалять можно только старые shadow-версии. Последняя версия защищена.</span>
+                <span>В архив можно убрать только старые shadow-версии. Последняя версия защищена.</span>
               </div>
               {deleteError && <p className="monitoring-error">{deleteError}</p>}
               <ModelGroup title="Актуальные версии" models={activeModels} isHistory={false} removeModel={removeModel} token={token} />
@@ -196,7 +200,7 @@ function ModelGroup({ title, models, isHistory, removeModel, token }: { title: s
     {title && <h3>{title}</h3>}
     {models.map((model) => <div className="model-row" key={model.model_id}>
       <div><strong>{model.horizon} <em className={isHistory ? 'history-label' : 'latest-label'}>{isHistory ? 'история' : 'актуальная'}</em></strong><span>{model.model_type} · {model.symbol}</span></div>
-      <div className="model-actions"><span className={`monitoring-chip ${model.status === 'approved' ? 'ok' : 'shadow'}`}>{model.status ?? 'n/a'}</span>{isHistory && model.status !== 'approved' && <button className="model-delete" disabled={!token} onClick={() => removeModel(model.model_id)}>Удалить</button>}</div>
+      <div className="model-actions"><span className={`monitoring-chip ${model.status === 'approved' ? 'ok' : 'shadow'}`}>{model.status ?? 'n/a'}</span>{isHistory && model.status !== 'approved' && <button className="model-delete" disabled={!token} onClick={() => removeModel(model.model_id)}>В архив</button>}</div>
     </div>)}
   </section>;
 }
@@ -217,6 +221,12 @@ function paperModelName(type: string) {
   if (type.includes('state')) return 'State-aware barrier';
   if (type.includes('barrier')) return 'XGBoost barrier';
   return 'XGBoost direction';
+}
+
+function modelSource(type: string): 'base' | 'barrier' | 'experiment' {
+  if (type.includes('barrier')) return 'barrier';
+  if (type.includes('state') || type.includes('meta') || type.includes('pytorch')) return 'experiment';
+  return 'base';
 }
 
 function legacyWallet(paper: PaperOverview, modelId: string): PaperWallet {
