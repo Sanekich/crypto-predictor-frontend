@@ -1,13 +1,13 @@
 import { API_URL } from './client';
 
-export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_pytorch' | 'train_state_barrier' | 'train_meta_label';
-export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | 'pytorch_full_derivatives' | string;
-export type PytorchFeatureSet = 'candles' | 'all_data';
+export type OperationAction = 'status' | 'train_direction' | 'walk_forward' | 'regime_report' | 'train_barrier' | 'train_state_barrier' | 'train_meta_label' | 'train_volatility';
+export type FeatureSet = 'v1' | 'v2_funding_basis' | 'v3_open_interest' | string;
+export type OperationHorizon = '1h' | '4h' | '24h' | '7d';
 
 export interface OperationJob {
   job_id: string;
   action: OperationAction;
-  horizon: '24h' | '7d';
+  horizon: OperationHorizon;
   feature_set: FeatureSet;
   barrier_config?: string | null;
   barrier_feature_set?: string | null;
@@ -16,6 +16,13 @@ export interface OperationJob {
   finished_at: string | null;
   output: string;
   return_code: number | null;
+}
+
+export interface OperationOptions {
+  featureSet?: FeatureSet;
+  barrierFeatureSet?: 'candles' | 'all_data' | 'all';
+  startDate?: string;
+  excludeRecentDays?: number;
 }
 
 export function tokenHeader(token: string): Record<string, string> {
@@ -32,23 +39,19 @@ export async function getOperationStatus(token: string, signal?: AbortSignal): P
   return response.json() as Promise<OperationJob[]>;
 }
 
-export async function startOperation(action: OperationAction, horizon: '24h' | '7d', token: string, featureSet: FeatureSet = 'v1', pytorchFeatureSet: PytorchFeatureSet = 'all_data', pytorchSequenceLength: 168 | 336 = 336, barrierFeatureSet: 'candles' | 'all_data' | 'all' = 'all', startDate?: string, excludeRecentDays = 0): Promise<OperationJob> {
-  const bytes = new TextEncoder().encode(token);
-  let binary = '';
-  bytes.forEach((byte) => { binary += String.fromCharCode(byte); });
+export async function startOperation(action: OperationAction, horizon: OperationHorizon, token: string, options: OperationOptions = {}): Promise<OperationJob> {
   const response = await fetch(`${API_URL}/operations/run`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Operations-Token-B64': btoa(binary) },
-    body: JSON.stringify({ action, horizon, feature_set: featureSet, barrier_feature_set: barrierFeatureSet, pytorch_feature_set: pytorchFeatureSet, pytorch_sequence_length: pytorchSequenceLength, start_date: startDate || null, exclude_recent_days: excludeRecentDays }),
+    headers: { 'Content-Type': 'application/json', ...tokenHeader(token) },
+    body: JSON.stringify({
+      action,
+      horizon,
+      feature_set: options.featureSet ?? 'v1',
+      barrier_feature_set: options.barrierFeatureSet ?? 'all',
+      start_date: options.startDate || null,
+      exclude_recent_days: options.excludeRecentDays ?? 0,
+    }),
   });
   if (!response.ok) throw new Error((await response.text()) || `Operation failed (${response.status})`);
   return response.json() as Promise<OperationJob>;
-}
-
-export async function deleteOldModel(modelId: string, token: string): Promise<void> {
-  const response = await fetch(`${API_URL}/models/${encodeURIComponent(modelId)}`, {
-    method: 'DELETE',
-    headers: tokenHeader(token),
-  });
-  if (!response.ok) throw new Error((await response.text()) || `Delete failed (${response.status})`);
 }

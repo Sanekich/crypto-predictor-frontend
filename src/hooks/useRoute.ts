@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react';
 
-export type Route = 'overview' | 'signals' | 'monitoring' | 'history' | 'lab' | 'tests' | 'barrier' | 'pytorch' | 'ideas';
+export type Route = 'overview' | 'signals' | 'monitoring' | 'history' | 'lab' | 'tests' | 'barrier' | 'ideas' | 'volatility' | 'euphoria' | 'paper';
 
 // Hash-based routing: works on any static hosting (Render static site) without server rewrites.
 function read(): Route {
@@ -10,8 +10,10 @@ function read(): Route {
   if (window.location.hash.startsWith('#/lab')) return 'lab';
   if (window.location.hash.startsWith('#/tests')) return 'tests';
   if (window.location.hash.startsWith('#/barrier')) return 'barrier';
-  if (window.location.hash.startsWith('#/pytorch')) return 'pytorch';
   if (window.location.hash.startsWith('#/ideas')) return 'ideas';
+  if (window.location.hash.startsWith('#/volatility')) return 'volatility';
+  if (window.location.hash.startsWith('#/euphoria')) return 'euphoria';
+  if (window.location.hash.startsWith('#/paper')) return 'paper';
   return 'overview';
 }
 
@@ -32,6 +34,8 @@ export const routeHref: Record<Route, string> = {
   lab: '#/lab',
   tests: '#/tests',
   barrier: '#/barrier',
-  pytorch: '#/pytorch',
   ideas: '#/ideas',
+  volatility: '#/volatility',
+  euphoria: '#/euphoria',
+  paper: '#/paper',
 };

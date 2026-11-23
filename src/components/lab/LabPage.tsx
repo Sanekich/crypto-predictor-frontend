@@ -5,7 +5,8 @@ type LabCard = { href: string; eyebrow: string; title: string; description: stri
 const cards: LabCard[] = [
   { href: '#/tests', eyebrow: 'VALIDATION', title: 'Тесты', description: 'Обучение и проверка старых моделей, walk-forward и regime reports.', status: 'контроль качества', accent: 'blue' },
   { href: '#/barrier', eyebrow: 'NEW LOGIC', title: 'Новая логика', description: 'Barrier-модели: что наступит первым — заметный рост или падение.', status: 'shadow-модели', accent: 'green' },
-  { href: '#/pytorch', eyebrow: 'CHALLENGER', title: 'Эксперимент', description: 'PyTorch GRU и сравнение challenger-моделей с baseline.', status: 'отдельная ветка', accent: 'purple' },
+  { href: '#/volatility', eyebrow: 'VOLATILITY', title: 'Волатильность', description: 'Будет ли сильное движение в ближайшие часы — и текущий прогноз.', status: 'фильтр для сигналов', accent: 'purple' },
+  { href: '#/euphoria', eyebrow: 'SENTIMENT', title: 'Эйфория и паника', description: 'Индекс перекоса толпы и что было после крайностей.', status: 'исследование', accent: 'amber' },
   { href: '#/ideas', eyebrow: 'RESEARCH LAB', title: 'Идеи', description: 'State-aware модели, shock detection, новости и будущие эксперименты.', status: 'план экспериментов', accent: 'amber' },
 ];
 

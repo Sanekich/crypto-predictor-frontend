@@ -4,8 +4,10 @@ import MonitoringPage from './components/monitoring/MonitoringPage'
 import HistoryPage from './components/history/HistoryPage'
 import TestsPage from './components/tests/TestsPage'
 import BarrierPage from './components/barrier/BarrierPage'
-import PyTorchPage from './components/pytorch/PyTorchPage'
 import IdeasPage from './components/ideas/IdeasPage'
+import VolatilityPage, { VolatilitySection } from './components/volatility/VolatilityPage'
+import EuphoriaPage, { EuphoriaSection } from './components/euphoria/EuphoriaPage'
+import PaperPage from './components/paper/PaperPage'
 import LabPage from './components/lab/LabPage'
 import ForecastCard from './components/forecast/ForecastCard'
 import ShortTermSection from './components/signals/ShortTermSection'
@@ -42,9 +44,10 @@ function App() {
         <nav className="topnav" aria-label="Разделы">
           <a href={routeHref.overview} className={route === 'overview' ? 'active' : ''}>Обзор</a>
           <a href={routeHref.signals} className={route === 'signals' ? 'active' : ''}>Сигналы 75%+</a>
+          <a href={routeHref.paper} className={route === 'paper' ? 'active' : ''}>Проверка</a>
           <a href={routeHref.monitoring} className={route === 'monitoring' ? 'active' : ''}>Мониторинг</a>
           <a href={routeHref.history} className={route === 'history' ? 'active' : ''}>История</a>
-          <a href={routeHref.lab} className={route === 'lab' || route === 'tests' || route === 'barrier' || route === 'pytorch' || route === 'ideas' ? 'active' : ''}>Лаборатория</a>
+          <a href={routeHref.lab} className={route === 'lab' || route === 'tests' || route === 'barrier' || route === 'ideas' || route === 'volatility' || route === 'euphoria' ? 'active' : ''}>Лаборатория</a>
         </nav>
 
         <div className="topbar-note">
@@ -65,8 +68,12 @@ function App() {
         <TestsPage />
       ) : route === 'barrier' ? (
         <BarrierPage />
-      ) : route === 'pytorch' ? (
-        <PyTorchPage />
+      ) : route === 'euphoria' ? (
+        <EuphoriaPage />
+      ) : route === 'paper' ? (
+        <PaperPage />
+      ) : route === 'volatility' ? (
+        <VolatilityPage />
       ) : route === 'ideas' ? (
         <IdeasPage />
       ) : (
@@ -97,9 +104,14 @@ function App() {
 
           <ShortTermSection state={signals} />
 
+          <VolatilitySection />
+
+          <EuphoriaSection />
+
           <p className="disclaimer">
             Диапазон — оценка модели машинного обучения: с указанной вероятностью цена окажется внутри него.
             Вероятность направления откалибрована на истории; сигналы моделей в теневом режиме не проверены.
+            Вероятность сильного движения говорит о размере, а не о направлении: «±1%» значит, что цена коснётся +1% или −1%.
             Это исследовательский прогноз, а не инвестиционная рекомендация.
           </p>
         </>

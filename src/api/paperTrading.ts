@@ -1,4 +1,7 @@
 import { API_URL, getJsonForMonitoring } from './client';
+import { tokenHeader } from './operations';
+
+// Mirrors app/api/routes/paper_trading.py and app/services/paper_strategies.py (virtual only).
 
 export interface PaperModel {
   model_id: string;
@@ -51,6 +54,52 @@ export interface PaperTrade {
   closed_at: string;
 }
 
+export interface StrategyTrade {
+  side: 'long' | 'short';
+  notional: number;
+  entry_price: number;
+  exit_price: number;
+  opened_at: string;
+  closed_at: string;
+  expires_at: string;
+  pnl: number;
+  return_pct: number;
+  correct: boolean;
+  signal: { as_of: string; confidence?: number; p_up?: number; p_move?: number | null; euphoria?: number };
+}
+
+export interface StrategyPosition {
+  side: 'long' | 'short';
+  notional: number;
+  entry_price: number;
+  opened_at: string;
+  expires_at: string;
+  current_price: number;
+  unrealized_pnl: number;
+  signal: StrategyTrade['signal'];
+}
+
+export interface PaperStrategy {
+  id: string;
+  label: string;
+  description: string;
+  kind: 'direction' | 'panic';
+  horizon_hours: number;
+  initial_balance: number;
+  equity: number;
+  return_pct: number;
+  trades_count: number;
+  wins: number;
+  win_rate: number | null;
+  win_rate_lower_95: number | null;
+  avg_trade_return: number | null;
+  fees_paid: number;
+  position: StrategyPosition | null;
+  recent_trades: StrategyTrade[];
+}
+
+export interface PaperController { enabled: boolean; last_tick: string | null; last_action: string; threshold: number; }
+
 export interface PaperOverview {
   initial_balance: number;
   cash: number;
@@ -59,21 +108,19 @@ export interface PaperOverview {
   unrealized_pnl: number;
   return_pct: number;
   current_price: number;
-  positions?: PaperPosition[];
-  trades?: PaperTrade[];
   models: PaperModel[];
+  strategies: PaperStrategy[];
   controller: PaperController;
   virtual_only: boolean;
 }
-
-export interface PaperController { enabled: boolean; last_tick: string | null; last_action: string; threshold: number; }
 
 export function getPaperOverview(signal?: AbortSignal): Promise<PaperOverview> {
   return getJsonForMonitoring<PaperOverview>('/paper-trading/overview', signal);
 }
 
-async function paperAction<T>(path: string, body?: unknown): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: body ? JSON.stringify(body) : undefined });
+async function paperAction<T>(path: string, body?: unknown, token?: string): Promise<T> {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json', ...(token ? tokenHeader(token) : {}) };
+  const response = await fetch(`${API_URL}${path}`, { method: 'POST', headers, body: body ? JSON.stringify(body) : undefined });
   if (!response.ok) throw new Error((await response.text()) || `Paper trading failed (${response.status})`);
   return response.json() as Promise<T>;
 }
@@ -86,10 +133,10 @@ export function closePaperTrade(modelId: string): Promise<PaperOverview> {
   return paperAction<PaperOverview>(`/paper-trading/close/${encodeURIComponent(modelId)}`);
 }
 
-export function resetPaperPortfolio(): Promise<{ status: string; balance_per_model: string }> {
-  return paperAction<{ status: string; balance_per_model: string }>('/paper-trading/reset');
+export function resetPaperPortfolio(token: string): Promise<{ status: string; balance_per_model: string }> {
+  return paperAction<{ status: string; balance_per_model: string }>('/paper-trading/reset', undefined, token);
 }
 
-export function setPaperController(enabled: boolean): Promise<PaperController> {
-  return paperAction<PaperController>('/paper-trading/controller', { enabled });
+export function setPaperController(enabled: boolean, token: string): Promise<PaperController> {
+  return paperAction<PaperController>('/paper-trading/controller', { enabled }, token);
 }

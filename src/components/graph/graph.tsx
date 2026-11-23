@@ -295,7 +295,7 @@ function PriceChart({ forecast }: PriceChartProps) {
         }
 
         setLoading(false);
-      } catch (err) {
+      } catch {
         if (controller.signal.aborted) return;
 
         setError('Unable to load Bitcoin market data.');

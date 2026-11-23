@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOperationStatus, startOperation, type FeatureSet, type OperationAction, type OperationJob } from '../../api/operations';
+import { getOperationStatus, startOperation, type FeatureSet, type OperationAction, type OperationHorizon, type OperationJob } from '../../api/operations';
 import './tests.css';
 
 const actions: { action: OperationAction; label: string; description: string }[] = [
@@ -9,9 +9,17 @@ const actions: { action: OperationAction; label: string; description: string }[]
   { action: 'regime_report', label: 'Режимы рынка', description: 'Качество по режимам волатильности и тренда' },
 ];
 
+// 1h and 4h are the only horizons with stable walk-forward skill (the site's 1-4h signals)
+const HORIZONS: { value: OperationHorizon; label: string }[] = [
+  { value: '1h', label: '1 час' },
+  { value: '4h', label: '4 часа' },
+  { value: '24h', label: '24 часа' },
+  { value: '7d', label: '7 дней' },
+];
+
 function TestsPage() {
   const [token, setToken] = useState('');
-  const [horizon, setHorizon] = useState<'24h' | '7d'>('24h');
+  const [horizon, setHorizon] = useState<OperationHorizon>('4h');
   const [featureSet, setFeatureSet] = useState<FeatureSet>('v1');
   const [startDate, setStartDate] = useState('2024-01-01');
   const [excludeRecentDays, setExcludeRecentDays] = useState(5);
@@ -33,7 +41,7 @@ function TestsPage() {
   async function run(action: OperationAction) {
     setError(null);
     try {
-      await startOperation(action, horizon, token, featureSet, 'all_data', 336, 'all', action === 'train_direction' ? startDate : undefined, action === 'train_direction' ? excludeRecentDays : 0);
+      await startOperation(action, horizon, token, { featureSet, startDate: action === 'train_direction' ? startDate : undefined, excludeRecentDays: action === 'train_direction' ? excludeRecentDays : 0 });
       refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Не удалось запустить операцию');
@@ -51,7 +59,7 @@ function TestsPage() {
       <section className="tests-panel tests-controls">
         <div className="tests-panel-heading"><div><p className="eyebrow">УПРАВЛЕНИЕ</p><h2>Запустить операцию</h2></div><span className={`tests-chip ${running ? 'busy' : 'ready'}`}>{running ? 'занято' : 'готово'}</span></div>
         <label className="tests-field">Токен операций<input type="password" value={token} onChange={(event) => setToken(event.target.value)} placeholder="OPERATIONS_TOKEN" autoComplete="off" /></label>
-        <div className="tests-horizons"><span>Горизонт</span><button className={horizon === '24h' ? 'active' : ''} onClick={() => setHorizon('24h')}>24 часа</button><button className={horizon === '7d' ? 'active' : ''} onClick={() => setHorizon('7d')}>7 дней</button></div>
+        <div className="tests-horizons"><span>Горизонт</span>{HORIZONS.map((item) => <button key={item.value} className={horizon === item.value ? 'active' : ''} onClick={() => setHorizon(item.value)}>{item.label}</button>)}</div>
         <label className="tests-field tests-select-field">Набор признаков<select value={featureSet} onChange={(event) => setFeatureSet(event.target.value as FeatureSet)}><option value="v1">v1 — OHLCV (baseline)</option><option value="v2_funding_basis">v2 — OHLCV + funding + basis</option><option value="v3_open_interest">v3 — + open interest</option></select></label>
         <div className="tests-date-window"><div><span className="tests-control-label">Окно обучения direction</span><small>Применяется только к новой direction-модели.</small></div><label className="tests-field">Начать с<input type="date" value={startDate} onChange={(event) => setStartDate(event.target.value)} /></label><label className="tests-field">Исключить последние дни<input type="number" min="0" max="3650" value={excludeRecentDays} onChange={(event) => setExcludeRecentDays(Math.max(0, Number(event.target.value) || 0))} /></label></div>
         <div className="tests-action-grid">{actions.map((item) => <button className="tests-action" key={item.action} onClick={() => run(item.action)} disabled={running || !token}><strong>{item.label}</strong><span>{item.description}</span></button>)}</div>

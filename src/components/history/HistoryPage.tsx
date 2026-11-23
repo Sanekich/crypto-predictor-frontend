@@ -4,7 +4,7 @@ import './history.css';
 
 const pct = (value?: number) => value == null ? '—' : `${(value * 100).toFixed(1)}%`;
 const skill = (value?: number) => value == null ? '—' : `${value >= 0 ? '+' : ''}${(value * 100).toFixed(2)}%`;
-const modelLabel = (model: ModelHistoryEntry) => model.model_type.includes('barrier') ? 'Barrier' : model.model_type.includes('pytorch') ? 'PyTorch' : model.model_type.includes('quantile') ? 'Quantile' : model.model_type.includes('neutral') ? 'Neutral direction' : 'XGBoost direction';
+const modelLabel = (model: ModelHistoryEntry) => model.model_type.includes('barrier') ? 'Barrier' : model.model_type.includes('quantile') ? 'Quantile' : model.model_type.includes('neutral') ? 'Neutral direction' : 'XGBoost direction';
 
 export default function HistoryPage() {
   const [data, setData] = useState<ModelHistoryResponse | null>(null);
